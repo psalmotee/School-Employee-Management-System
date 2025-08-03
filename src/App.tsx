@@ -10,6 +10,11 @@ import LeaveRequests from "./pages/LeaveRequests"
 import ErrorBoundary from "./components/ErrorBoundary"
 // import FirebaseStatus from "./components/FirebaseStatus"
 import Admin from "./pages/Admin"
+import Departments from "./pages/Departments"
+import Reports from "./pages/Reports"
+import Profile from "./pages/Profile"
+import Settings from "./pages/Settings"
+import Notifications from "./pages/Notifications"
 
 function App() {
   return (
@@ -32,6 +37,11 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="employees" element={<Employees />} />
                 <Route path="leave-requests" element={<LeaveRequests />} />
+                <Route path="departments" element={<Departments />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="notifications" element={<Notifications />} />
                 <Route path="admin" element={<Admin />} />
               </Route>
             </Routes>

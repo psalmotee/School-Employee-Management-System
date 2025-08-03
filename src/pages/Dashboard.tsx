@@ -1,16 +1,26 @@
 "use client"
 
 import type React from "react"
+import { useNavigate } from "react-router-dom"
 import { Users, Calendar, Building2, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
+import { useEmployees } from "../hooks/useEmployees"
+import { useLeaveRequests } from "../hooks/useLeaveRequests"
 
 const Dashboard: React.FC = () => {
   const { userProfile } = useAuth()
+  const navigate = useNavigate()
+  const { employees } = useEmployees()
+  const { leaveRequests, getPendingRequests } = useLeaveRequests()
+
+  const pendingRequests = getPendingRequests()
+  const activeEmployees = employees.filter(emp => emp.status === 'active')
+  const departments = new Set(employees.map(emp => emp.department))
 
   const stats = [
     {
       title: "Total Employees",
-      value: "248",
+      value: employees.length.toString(),
       change: "+12%",
       changeType: "increase",
       icon: Users,
@@ -18,7 +28,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "Active Departments",
-      value: "8",
+      value: departments.size.toString(),
       change: "+2",
       changeType: "increase",
       icon: Building2,
@@ -26,7 +36,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "Pending Requests",
-      value: "15",
+      value: pendingRequests.length.toString(),
       change: "-5",
       changeType: "decrease",
       icon: Clock,
@@ -34,7 +44,12 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "This Month Leaves",
-      value: "42",
+      value: leaveRequests.filter(req => {
+        const now = new Date()
+        const requestMonth = req.createdAt.getMonth()
+        const requestYear = req.createdAt.getFullYear()
+        return requestMonth === now.getMonth() && requestYear === now.getFullYear()
+      }).length.toString(),
       change: "+8%",
       changeType: "increase",
       icon: Calendar,
@@ -42,35 +57,7 @@ const Dashboard: React.FC = () => {
     },
   ]
 
-  const recentLeaveRequests = [
-    {
-      id: "1",
-      employeeName: "John Smith",
-      leaveType: "Sick Leave",
-      startDate: "2024-01-15",
-      endDate: "2024-01-17",
-      status: "pending",
-      days: 3,
-    },
-    {
-      id: "2",
-      employeeName: "Sarah Johnson",
-      leaveType: "Vacation",
-      startDate: "2024-01-20",
-      endDate: "2024-01-25",
-      status: "approved",
-      days: 5,
-    },
-    {
-      id: "3",
-      employeeName: "Mike Davis",
-      leaveType: "Personal",
-      startDate: "2024-01-18",
-      endDate: "2024-01-18",
-      status: "rejected",
-      days: 1,
-    },
-  ]
+  const recentLeaveRequests = leaveRequests.slice(0, 3)
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -146,19 +133,19 @@ const Dashboard: React.FC = () => {
                     <div>
                       <p className="font-medium">{request.employeeName}</p>
                       <p className="text-sm text-base-content/60">
-                        {request.leaveType} • {request.days} day{request.days > 1 ? "s" : ""}
+                        {request.leaveType.charAt(0).toUpperCase() + request.leaveType.slice(1)} • {request.days} day{request.days > 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className={getStatusBadge(request.status)}>{request.status}</div>
-                    <p className="text-xs text-base-content/60 mt-1">{request.startDate}</p>
+                    <p className="text-xs text-base-content/60 mt-1">{request.startDate.toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="card-actions justify-end">
-              <button className="btn btn-primary btn-sm">View All</button>
+              <button className="btn btn-primary btn-sm" onClick={() => navigate('/leave-requests')}>View All</button>
             </div>
           </div>
         </div>
@@ -168,21 +155,21 @@ const Dashboard: React.FC = () => {
           <div className="card-body">
             <h2 className="card-title">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-4">
-              <button className="btn btn-outline btn-primary">
+              <button className="btn btn-outline btn-primary" onClick={() => navigate('/employees')}>
                 <Users className="h-5 w-5" />
-                Add Employee
+                Manage Employees
               </button>
-              <button className="btn btn-outline btn-secondary">
+              <button className="btn btn-outline btn-secondary" onClick={() => navigate('/leave-requests')}>
                 <Calendar className="h-5 w-5" />
-                New Leave Request
+                Leave Requests
               </button>
-              <button className="btn btn-outline btn-accent">
+              <button className="btn btn-outline btn-accent" onClick={() => navigate('/departments')}>
                 <Building2 className="h-5 w-5" />
-                Manage Departments
+                Departments
               </button>
-              <button className="btn btn-outline btn-info">
+              <button className="btn btn-outline btn-info" onClick={() => navigate('/reports')}>
                 <TrendingUp className="h-5 w-5" />
-                View Reports
+                Reports
               </button>
             </div>
           </div>
@@ -199,45 +186,31 @@ const Dashboard: React.FC = () => {
                 <tr>
                   <th>Department</th>
                   <th>Employees</th>
-                  <th>Manager</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Teaching Staff</td>
-                  <td>85</td>
-                  <td>Dr. Emily Wilson</td>
-                  <td>
-                    <div className="badge badge-success">Active</div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Administration</td>
-                  <td>25</td>
-                  <td>Robert Brown</td>
-                  <td>
-                    <div className="badge badge-success">Active</div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>IT Department</td>
-                  <td>12</td>
-                  <td>Alex Chen</td>
-                  <td>
-                    <div className="badge badge-success">Active</div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Maintenance</td>
-                  <td>18</td>
-                  <td>James Miller</td>
-                  <td>
-                    <div className="badge badge-warning">Understaffed</div>
-                  </td>
-                </tr>
+                {Array.from(departments).map((dept) => {
+                  const deptEmployees = employees.filter(emp => emp.department === dept && emp.status === 'active')
+                  return (
+                    <tr key={dept}>
+                      <td>{dept}</td>
+                      <td>{deptEmployees.length}</td>
+                      <td>
+                        <div className={`badge ${deptEmployees.length > 0 ? 'badge-success' : 'badge-warning'}`}>
+                          {deptEmployees.length > 0 ? 'Active' : 'No Staff'}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
+          </div>
+          <div className="card-actions justify-end mt-4">
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/departments')}>
+              View All Departments
+            </button>
           </div>
         </div>
       </div>

@@ -3,11 +3,13 @@
 import type React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-import { User, Settings, LogOut, Bell, Menu, GraduationCap } from "lucide-react"
+import { User, Settings, LogOut, Bell, Menu, GraduationCap, Users, Calendar, Building2, FileText, Shield } from "lucide-react"
 
 const Navbar: React.FC = () => {
   const { userProfile, logout } = useAuth()
   const navigate = useNavigate()
+
+  const [notificationCount] = React.useState(3) // Mock notification count
 
   const handleLogout = async () => {
     try {
@@ -18,25 +20,67 @@ const Navbar: React.FC = () => {
     }
   }
 
+  const canAccessAdmin = userProfile?.role === "admin" || userProfile?.role === "manager"
+
   return (
     <div className="navbar bg-base-100 shadow-lg border-b border-base-200">
       <div className="navbar-start">
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+        <div className="dropdown lg:hidden">
+          <div tabIndex={0} role="button" className="btn btn-ghost">
             <Menu className="h-5 w-5" />
           </div>
-          <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-64">
             <li>
-              <Link to="/dashboard">Dashboard</Link>
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                Dashboard
+              </Link>
             </li>
             <li>
-              <Link to="/employees">Employees</Link>
+              <Link to="/employees" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Employees
+              </Link>
             </li>
             <li>
-              <Link to="/leave-requests">Leave Requests</Link>
+              <Link to="/leave-requests" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Leave Requests
+              </Link>
             </li>
             <li>
-              <Link to="/departments">Departments</Link>
+              <Link to="/departments" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Departments
+              </Link>
+            </li>
+            {canAccessAdmin && (
+              <>
+                <li>
+                  <Link to="/admin" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Administration
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/reports" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Reports
+                  </Link>
+                </li>
+              </>
+            )}
+            <li>
+              <Link to="/profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile
+              </Link>
+            </li>
+            <li>
+              <Link to="/settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
             </li>
           </ul>
         </div>
@@ -73,10 +117,12 @@ const Navbar: React.FC = () => {
 
       <div className="navbar-end">
         <div className="flex items-center gap-2">
-          <button className="btn btn-ghost btn-circle">
+          <button className="btn btn-ghost btn-circle" onClick={() => navigate('/notifications')}>
             <div className="indicator">
               <Bell className="h-5 w-5" />
-              <span className="badge badge-xs badge-primary indicator-item"></span>
+              {notificationCount > 0 && (
+                <span className="badge badge-xs badge-primary indicator-item">{notificationCount}</span>
+              )}
             </div>
           </button>
 
