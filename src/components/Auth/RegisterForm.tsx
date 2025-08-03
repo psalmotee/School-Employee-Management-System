@@ -5,7 +5,14 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { useAuth } from "../../contexts/AuthContext"
-import { Mail, Lock, User, Building2, Briefcase, Phone, Eye, EyeOff, GraduationCap } from "lucide-react"
+import { useInvitationCodes } from "../../hooks/useInvitationCodes"
+import { Mail, Lock, User, Building2, Briefcase, Phone, Eye, EyeOff, GraduationCap, Shield } from "lucide-react"
+import type { InvitationCode } from "../../types"
+
+interface RegisterFormProps {
+  invitationCode: InvitationCode
+  onBack: () => void
+}
 
 interface RegisterFormData {
   name: string
@@ -15,14 +22,14 @@ interface RegisterFormData {
   department: string
   position: string
   phone: string
-  role: "admin" | "manager" | "employee"
 }
 
-const RegisterForm: React.FC = () => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { register: registerUser } = useAuth()
+  const { markCodeAsUsed } = useInvitationCodes()
   const navigate = useNavigate()
 
   const {
@@ -48,13 +55,18 @@ const RegisterForm: React.FC = () => {
   const onSubmit = async (data: RegisterFormData) => {
     setLoading(true)
     try {
+      // Register the user with the role from the invitation code
       await registerUser(data.email, data.password, {
         name: data.name,
         department: data.department,
         position: data.position,
         phone: data.phone,
-        role: data.role,
+        role: invitationCode.role,
       })
+
+      // Mark the invitation code as used
+      await markCodeAsUsed(invitationCode.id, data.email)
+
       navigate("/dashboard")
     } catch (error: any) {
       setError("email", { message: "Failed to create account. Email may already exist." })
@@ -62,6 +74,29 @@ const RegisterForm: React.FC = () => {
       setLoading(false)
     }
   }
+
+  const getRoleInfo = () => {
+    if (invitationCode.role === "admin") {
+      return {
+        title: "Administrator Account",
+        description: "Full system access and management capabilities",
+        color: "text-error",
+        bgColor: "bg-error/10",
+        icon: Shield,
+      }
+    } else {
+      return {
+        title: "Manager Account",
+        description: "Department management and employee oversight",
+        color: "text-warning",
+        bgColor: "bg-warning/10",
+        icon: Shield,
+      }
+    }
+  }
+
+  const roleInfo = getRoleInfo()
+  const RoleIcon = roleInfo.icon
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 py-8">
@@ -73,15 +108,27 @@ const RegisterForm: React.FC = () => {
                 <GraduationCap className="h-8 w-8 text-primary-content" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-primary">Join School EMS</h1>
-            <p className="text-base-content/60">Create your employee account</p>
+            <h1 className="text-3xl font-bold text-primary">Create Account</h1>
+            <p className="text-base-content/60">Complete your registration</p>
+          </div>
+
+          {/* Role Information */}
+          <div className={`alert ${roleInfo.bgColor} mb-6`}>
+            <RoleIcon className={`h-6 w-6 ${roleInfo.color}`} />
+            <div>
+              <h3 className={`font-bold ${roleInfo.color}`}>{roleInfo.title}</h3>
+              <div className="text-sm">{roleInfo.description}</div>
+              <div className="text-xs mt-1 opacity-70">
+                Code: {invitationCode.code} • Created by: {invitationCode.createdByName}
+              </div>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Full Name</span>
+                  <span className="label-text">Full Name *</span>
                 </label>
                 <div className="relative">
                   <input
@@ -101,7 +148,7 @@ const RegisterForm: React.FC = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Email</span>
+                  <span className="label-text">Email *</span>
                 </label>
                 <div className="relative">
                   <input
@@ -129,7 +176,7 @@ const RegisterForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Password</span>
+                  <span className="label-text">Password *</span>
                 </label>
                 <div className="relative">
                   <input
@@ -166,7 +213,7 @@ const RegisterForm: React.FC = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Confirm Password</span>
+                  <span className="label-text">Confirm Password *</span>
                 </label>
                 <div className="relative">
                   <input
@@ -202,7 +249,7 @@ const RegisterForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Department</span>
+                  <span className="label-text">Department *</span>
                 </label>
                 <div className="relative">
                   <select
@@ -227,7 +274,7 @@ const RegisterForm: React.FC = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Position</span>
+                  <span className="label-text">Position *</span>
                 </label>
                 <div className="relative">
                   <input
@@ -246,46 +293,24 @@ const RegisterForm: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Phone Number</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    placeholder="Enter your phone number"
-                    className={`input input-bordered w-full pl-10 ${errors.phone ? "input-error" : ""}`}
-                    {...register("phone", { required: "Phone number is required" })}
-                  />
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-                </div>
-                {errors.phone && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.phone.message}</span>
-                  </label>
-                )}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Phone Number *</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  className={`input input-bordered w-full pl-10 ${errors.phone ? "input-error" : ""}`}
+                  {...register("phone", { required: "Phone number is required" })}
+                />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
               </div>
-
-              <div className="form-control">
+              {errors.phone && (
                 <label className="label">
-                  <span className="label-text">Role</span>
+                  <span className="label-text-alt text-error">{errors.phone.message}</span>
                 </label>
-                <select
-                  className={`select select-bordered w-full ${errors.role ? "select-error" : ""}`}
-                  {...register("role", { required: "Role is required" })}
-                >
-                  <option value="">Select Role</option>
-                  <option value="employee">Employee</option>
-                  <option value="manager">Manager</option>
-                  <option value="admin">Administrator</option>
-                </select>
-                {errors.role && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.role.message}</span>
-                  </label>
-                )}
-              </div>
+              )}
             </div>
 
             <div className="form-control mt-6">
@@ -298,7 +323,10 @@ const RegisterForm: React.FC = () => {
           <div className="divider">OR</div>
 
           <div className="text-center">
-            <p className="text-sm">
+            <button onClick={onBack} className="btn btn-outline btn-sm">
+              Use Different Code
+            </button>
+            <p className="text-sm mt-2">
               Already have an account?{" "}
               <Link to="/login" className="link link-primary">
                 Sign in here

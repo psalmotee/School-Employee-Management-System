@@ -14,9 +14,9 @@ const Sidebar: React.FC = () => {
     { path: "/employees", icon: Users, label: "Employees", adminOnly: false },
     { path: "/leave-requests", icon: Calendar, label: "Leave Requests" },
     { path: "/departments", icon: Building2, label: "Departments", adminOnly: true },
+    { path: "/admin", icon: Settings, label: "Administration", adminOnly: true },
     { path: "/reports", icon: FileText, label: "Reports", adminOnly: true },
     { path: "/profile", icon: User, label: "Profile" },
-    { path: "/settings", icon: Settings, label: "Settings", adminOnly: true },
   ]
 
   const filteredMenuItems = menuItems.filter(

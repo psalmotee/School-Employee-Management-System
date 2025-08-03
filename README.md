@@ -1,69 +1,115 @@
-# React + TypeScript + Vite
+# 🏫 School Employee Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, role-based employee management platform built with **React**, **TypeScript**, **Tailwind CSS v4**, **DaisyUI v5**, and **Firebase**.
 
-Currently, two official plugins are available:
+> 🚀 Fully customizable, responsive, and designed for managing school staff, departments, and leave workflows.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🔐 Authentication & Authorization
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Firebase email/password authentication
+- Role-based access control (Admin, Manager, Employee)
+- Protected routes and session persistence
+- User registration with detailed profile
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### 📊 Dashboard
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Key school stats and recent activity feed
+- Quick links to manage employees and leaves
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 👩‍🏫 Employee Management
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Add, update, and delete staff profiles
+- Filter and search by name, department, or role
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 📝 Leave Requests
+
+- Employees submit leave requests
+- Admins/Managers approve or reject requests
+- Status tracking and request history
+
+### 🏢 Departments
+
+- Overview of department staffing
+- Useful for structuring large institutions
+
+---
+
+## 🧱 Tech Stack
+
+- ⚛️ **React + Vite**
+- 📘 **TypeScript**
+- 🎨 **Tailwind CSS v4 + DaisyUI v5**
+- 🔒 **Firebase (Auth & Firestore)**
+- 🧩 **Lucide Icons**
+- ✅ **React Hook Form**
+- 🌐 Fully responsive & mobile-first
+
+---
+
+## 🗂️ Project Structure
+
+src/
+├── components/ # Reusable UI and feature components
+├── contexts/ # Global auth context
+├── hooks/ # Custom hooks (employees, leaves)
+├── pages/ # Route-based pages (Dashboard, Employees, Leaves)
+├── lib/ # Firebase config and utility functions
+├── types/ # TypeScript interfaces and types
+└── main.tsx, App.tsx # Entry points
+
+---
+
+## 🚀 Getting Started
+
+1. **Clone the repo:**
+
+```bash
+git clone https://github.com/psalmotee/School-Employee-Management-System.git
+cd School-Employee-Management-System
+
+Install dependencies:
+npm install
+
+Create a .env file in the root and add your Firebase config:
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+🧠 You can find these values in your Firebase Console.
+
+Run the development server:
+npm run dev
+
+📸 UI Highlights
+🎨 Clean and modern interface
+
+🌒 Dark mode ready
+
+📱 Mobile-first responsiveness
+
+🧩 Beautiful cards, badges, and modals
+
+📌 Roadmap
+ File upload (employee photos, docs)
+
+ Notifications and email alerts
+
+ Multi-language support
+
+ Admin analytics dashboard
+
+🛡️ License
+This project is licensed under the MIT License.
+
+🤝 Contributing
+Contributions, issues, and suggestions are welcome!
+Feel free to open a PR or create a discussion.
+
+📬 Contact
+Built by [ Samson Tolulope Moradeyo ( Psalmotee Tech)] · [LinkedIn](http://www.linkedin.com/in/samson-moradayo-211b26187) · [Email](samsonmoradeyo@gmail.com)

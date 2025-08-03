@@ -58,3 +58,16 @@ export interface Department {
   employeeCount: number
   createdAt: Date
 }
+
+export interface InvitationCode {
+  id: string
+  code: string
+  role: "admin" | "manager"
+  createdBy: string
+  createdByName: string
+  isUsed: boolean
+  usedBy?: string
+  usedAt?: Date
+  expiresAt: Date
+  createdAt: Date
+}
