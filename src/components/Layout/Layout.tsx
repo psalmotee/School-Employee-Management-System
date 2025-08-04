@@ -1,7 +1,7 @@
-import type React from "react";
-import { Outlet } from "react-router-dom";
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
+import type React from "react"
+import { Outlet } from "react-router-dom"
+import Navbar from "./Navbar"
+import Sidebar from "./Sidebar"
 
 const Layout: React.FC = () => {
   return (
@@ -17,7 +17,7 @@ const Layout: React.FC = () => {
 
       <Sidebar />
     </div>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout

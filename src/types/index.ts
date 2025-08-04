@@ -33,6 +33,9 @@ export interface LoginFormInputs {
 export interface RegisterFormInputs extends LoginFormInputs {
   name: string;
   invitationCode?: string;
+  role: UserRole;
+  departmentId?: string; // Optional for admin role
+  createdByName?: string; // Name of the user who created the account
 }
 
 export interface Employee {
@@ -43,7 +46,7 @@ export interface Employee {
   phone?: string;
   address?: string;
   dateOfBirth?: Date;
-  hireDate?: Date;
+  hireDate?: string;
   jobTitle?: string;
   department?: string;
   departmentId?: string;
@@ -52,6 +55,16 @@ export interface Employee {
   role: UserRole; // Employee's role within the organization
   createdAt: Date;
   updatedAt: Date;
+  createEmployee?: boolean; // Optional, if the employee is being created
+  employeeId?: string; // Optional, if the employee is linked to a user profile
+  position?: string; // Optional position within the department
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string; // e.g., "spouse", "parent", "friend"
+    cleanDate?: Date; // Optional, if applicable
+    handleFormSubmit?: (data: any) => void; // Optional function to handle form submission
+  };
 }
 
 export interface LeaveRequest {
@@ -67,6 +80,16 @@ export interface LeaveRequest {
   requestedAt: Date;
   reviewedBy?: string; // UID of manager/admin who reviewed
   reviewedAt?: Date;
+  requestDate?: Date; // Optional, if different from requestedAt
+  approvedBy?: string; // UID of the user who approved the request
+  leaveType?: string; // Optional, if the type is more specific
+  days?: number; // Optional, if the number of days is more specific
+  createdAt?: Date; // Optional, if the creation date is more specific
+  defaultValues?: Partial<LeaveRequest>; // Optional, for pre-filling form fields
+  requestData?: {
+    employeeId: string;
+    type: "sick" | "vacation" | "personal" | "other";
+  };
 }
 
 export interface Department {
@@ -87,6 +110,9 @@ export interface InvitationCode {
   usedBy?: string; // UID of user who used it
   usedAt?: Date;
   createdAt: Date;
+  createdById: string; // UID of the user who created the code
+  createdByName: string; // Name of the user who created the code
+  isUsed: boolean;
 }
 
 export interface Notification {

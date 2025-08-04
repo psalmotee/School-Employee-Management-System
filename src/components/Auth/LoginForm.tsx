@@ -1,41 +1,41 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { useAuth } from "../../contexts/AuthContext";
-import { Mail, Lock, Eye, EyeOff, GraduationCap } from "lucide-react";
+import type React from "react"
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { useAuth } from "../../contexts/AuthContext"
+import { Mail, Lock, Eye, EyeOff, GraduationCap } from "lucide-react"
 
 interface LoginFormData {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 const LoginForm: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<LoginFormData>();
+  } = useForm<LoginFormData>()
 
   const onSubmit = async (data: LoginFormData) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      await login(data.email, data.password);
-      navigate("/dashboard");
+      await login(data.email, data.password)
+      navigate("/dashboard")
     } catch (error: any) {
-      setError("email", { message: "Invalid email or password" });
+      setError("email", { message: "Invalid email or password" })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
@@ -60,9 +60,7 @@ const LoginForm: React.FC = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className={`input input-bordered w-full pl-10 ${
-                    errors.email ? "input-error" : ""
-                  }`}
+                  className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -75,9 +73,7 @@ const LoginForm: React.FC = () => {
               </div>
               {errors.email && (
                 <label className="label">
-                  <span className="label-text-alt text-error">
-                    {errors.email.message}
-                  </span>
+                  <span className="label-text-alt text-error">{errors.email.message}</span>
                 </label>
               )}
             </div>
@@ -90,9 +86,7 @@ const LoginForm: React.FC = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className={`input input-bordered w-full pl-10 pr-10 ${
-                    errors.password ? "input-error" : ""
-                  }`}
+                  className={`input input-bordered w-full pl-10 pr-10 ${errors.password ? "input-error" : ""}`}
                   {...register("password", {
                     required: "Password is required",
                     minLength: {
@@ -116,19 +110,13 @@ const LoginForm: React.FC = () => {
               </div>
               {errors.password && (
                 <label className="label">
-                  <span className="label-text-alt text-error">
-                    {errors.password.message}
-                  </span>
+                  <span className="label-text-alt text-error">{errors.password.message}</span>
                 </label>
               )}
             </div>
 
             <div className="form-control mt-6">
-              <button
-                type="submit"
-                className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
-                disabled={loading}
-              >
+              <button type="submit" className={`btn btn-primary w-full ${loading ? "loading" : ""}`} disabled={loading}>
                 {loading ? "Signing In..." : "Sign In"}
               </button>
             </div>
@@ -147,7 +135,7 @@ const LoginForm: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginForm;
+export default LoginForm

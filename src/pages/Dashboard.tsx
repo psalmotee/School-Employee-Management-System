@@ -18,72 +18,63 @@ import { useDepartments } from "../hooks/useDepartments";
 import { Link } from "react-router-dom";
 
 const Dashboard: React.FC = () => {
-  const { userProfile } = useAuth()
+  const { userProfile } = useAuth();
+  const { employees, loading: employeesLoading } = useEmployees();
+  const { leaveRequests, loading: leaveRequestsLoading } = useLeaveRequests();
+  const { departments, loading: departmentsLoading } = useDepartments();
+
+  const totalEmployees = employees.length;
+  const activeDepartments = departments.length;
+  const pendingLeaveRequests = leaveRequests.filter(
+    (req) => req.status === "pending"
+  ).length;
+  const thisMonthLeaves = leaveRequests.filter((req) => {
+    const now = new Date();
+    const reqDate = new Date(req.startDate);
+    return (
+      reqDate.getMonth() === now.getMonth() &&
+      reqDate.getFullYear() === now.getFullYear()
+    );
+  }).length;
+
+  const recentLeaveRequestsDisplay = leaveRequests
+    .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime())
+    .slice(0, 3); // Show top 3 recent requests
 
   const stats = [
     {
       title: "Total Employees",
-      value: "248",
-      change: "+12%",
+      value: employeesLoading ? "..." : totalEmployees.toString(),
+      change: "+12%", // Placeholder, would need historical data for real change
       changeType: "increase",
       icon: Users,
       color: "bg-primary",
     },
     {
       title: "Active Departments",
-      value: "8",
-      change: "+2",
+      value: departmentsLoading ? "..." : activeDepartments.toString(),
+      change: "+2", // Placeholder
       changeType: "increase",
       icon: Building2,
       color: "bg-secondary",
     },
     {
       title: "Pending Requests",
-      value: "15",
-      change: "-5",
+      value: leaveRequestsLoading ? "..." : pendingLeaveRequests.toString(),
+      change: "-5", // Placeholder
       changeType: "decrease",
       icon: Clock,
       color: "bg-warning",
     },
     {
       title: "This Month Leaves",
-      value: "42",
-      change: "+8%",
+      value: leaveRequestsLoading ? "..." : thisMonthLeaves.toString(),
+      change: "+8%", // Placeholder
       changeType: "increase",
       icon: Calendar,
       color: "bg-info",
     },
-  ]
-
-  const recentLeaveRequests = [
-    {
-      id: "1",
-      employeeName: "John Smith",
-      leaveType: "Sick Leave",
-      startDate: "2024-01-15",
-      endDate: "2024-01-17",
-      status: "pending",
-      days: 3,
-    },
-    {
-      id: "2",
-      employeeName: "Sarah Johnson",
-      leaveType: "Vacation",
-      startDate: "2024-01-20",
-      endDate: "2024-01-25",
-      status: "approved",
-      days: 5,
-    },
-    {
-      id: "3",
-      employeeName: "Mike Davis",
-      leaveType: "Personal",
-      startDate: "2024-01-18",
-      endDate: "2024-01-18",
-      status: "rejected",
-      days: 1,
-    },
-  ]
+  ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -109,7 +100,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-6 text-primary-content">
         <h1 className="text-3xl font-bold mb-2">
@@ -166,26 +157,46 @@ const Dashboard: React.FC = () => {
           <div className="card-body">
             <h2 className="card-title">Recent Leave Requests</h2>
             <div className="space-y-4">
-              {recentLeaveRequests.map((request) => (
-                <div key={request.id} className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(request.status)}
-                    <div>
-                      <p className="font-medium">{request.employeeName}</p>
-                      <p className="text-sm text-base-content/60">
-                        {request.leaveType} • {request.days} day{request.days > 1 ? "s" : ""}
+              {leaveRequestsLoading ? (
+                <div className="text-center">
+                  Loading recent leave requests...
+                </div>
+              ) : recentLeaveRequestsDisplay.length === 0 ? (
+                <div className="text-center text-base-content/60">
+                  No recent leave requests.
+                </div>
+              ) : (
+                recentLeaveRequestsDisplay.map((request) => (
+                  <div
+                    key={request.id}
+                    className="flex items-center justify-between p-4 bg-base-200 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(request.status)}
+                      <div>
+                        <p className="font-medium">{request.employeeName}</p>
+                        <p className="text-sm text-base-content/60">
+                          {request.leaveType} • {request.days} day
+                          {request.days > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={getStatusBadge(request.status)}>
+                        {request.status}
+                      </div>
+                      <p className="text-xs text-base-content/60 mt-1">
+                        {new Date(request.startDate).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className={getStatusBadge(request.status)}>{request.status}</div>
-                    <p className="text-xs text-base-content/60 mt-1">{request.startDate}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <div className="card-actions justify-end">
-              <button className="btn btn-primary btn-sm">View All</button>
+              <Link to="/leave-requests" className="btn btn-primary btn-sm">
+                View All
+              </Link>
             </div>
           </div>
         </div>
@@ -195,22 +206,25 @@ const Dashboard: React.FC = () => {
           <div className="card-body">
             <h2 className="card-title">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-4">
-              <button className="btn btn-outline btn-primary">
+              <Link to="/employees" className="btn btn-outline btn-primary">
                 <Users className="h-5 w-5" />
                 Add Employee
-              </button>
-              <button className="btn btn-outline btn-secondary">
+              </Link>
+              <Link
+                to="/leave-requests"
+                className="btn btn-outline btn-secondary"
+              >
                 <Calendar className="h-5 w-5" />
                 New Leave Request
-              </button>
-              <button className="btn btn-outline btn-accent">
+              </Link>
+              <Link to="/departments" className="btn btn-outline btn-accent">
                 <Building2 className="h-5 w-5" />
                 Manage Departments
-              </button>
-              <button className="btn btn-outline btn-info">
+              </Link>
+              <Link to="/reports" className="btn btn-outline btn-info">
                 <TrendingUp className="h-5 w-5" />
                 View Reports
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -226,49 +240,41 @@ const Dashboard: React.FC = () => {
                 <tr>
                   <th>Department</th>
                   <th>Employees</th>
+                  <th>Manager</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Teaching Staff</td>
-                  <td>85</td>
-                  <td>Dr. Emily Wilson</td>
-                  <td>
-                    <div className="badge badge-success">Active</div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Administration</td>
-                  <td>25</td>
-                  <td>Robert Brown</td>
-                  <td>
-                    <div className="badge badge-success">Active</div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>IT Department</td>
-                  <td>12</td>
-                  <td>Alex Chen</td>
-                  <td>
-                    <div className="badge badge-success">Active</div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Maintenance</td>
-                  <td>18</td>
-                  <td>James Miller</td>
-                  <td>
-                    <div className="badge badge-warning">Understaffed</div>
-                  </td>
-                </tr>
+                {departmentsLoading ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4">
+                      Loading department data...
+                    </td>
+                  </tr>
+                ) : departments.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center py-4 text-base-content/60"
+                    >
+                      No departments found.
+                    </td>
+                  </tr>
+                ) : (
+                  departments.map((dept) => (
+                    <tr key={dept.id}>
+                      <td>{dept.name}</td>
+                      <td>{dept.employeeCount}</td>
+                      <td>{dept.managerName || "N/A"}</td>
+                      <td>
+                        <div className="badge badge-success">Active</div>{" "}
+                        {/* Assuming all fetched departments are active for now */}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-          </div>
-          <div className="card-actions justify-end mt-4">
-            <button className="btn btn-primary btn-sm" onClick={() => navigate('/departments')}>
-              View All Departments
-            </button>
           </div>
         </div>
       </div>

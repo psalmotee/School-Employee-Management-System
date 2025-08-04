@@ -1,4 +1,5 @@
 "use client";
+
 import type React from "react";
 import { useState } from "react";
 import { useDepartments } from "../hooks/useDepartments";
@@ -14,7 +15,6 @@ const Departments: React.FC = () => {
     updateDepartment,
     deleteDepartment,
   } = useDepartments();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDepartment, setCurrentDepartment] =
     useState<Partial<Department> | null>(null);
@@ -96,6 +96,7 @@ const Departments: React.FC = () => {
           <Plus className="h-5 w-5" /> Add Department
         </button>
       </div>
+
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title">All Departments</h2>
@@ -149,20 +150,13 @@ const Departments: React.FC = () => {
           </div>
         </div>
       </div>
+
       {isModalOpen && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">
-                {currentDepartment ? "Edit Department" : "Add New Department"}
-              </h3>
-              <button
-                className="btn btn-ghost btn-sm btn-circle"
-                onClick={closeModal}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <h3 className="font-bold text-lg">
+              {currentDepartment ? "Edit Department" : "Add New Department"}
+            </h3>
             <form onSubmit={handleSubmit} className="py-4 space-y-4">
               <div>
                 <label className="label">
@@ -206,7 +200,7 @@ const Departments: React.FC = () => {
               </div>
               <div className="modal-action">
                 <button type="button" className="btn" onClick={closeModal}>
-                  Cancel
+                  <X className="h-5 w-5" /> Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
                   <Save className="h-5 w-5" />{" "}
@@ -215,7 +209,6 @@ const Departments: React.FC = () => {
               </div>
             </form>
           </div>
-          <div className="modal-backdrop" onClick={closeModal}></div>
         </div>
       )}
     </div>

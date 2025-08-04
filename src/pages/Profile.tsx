@@ -2,82 +2,78 @@
 
 import type React from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"; // Assuming shadcn/ui Card components are available
-import { Label } from "../components/ui/label";
-import { Input } from "../components/ui/input";
+import { Mail, Phone, Briefcase, Building2 } from "lucide-react";
 
 const Profile: React.FC = () => {
-  const { userProfile, currentUser } = useAuth();
+  const { userProfile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="text-error text-center p-4">
+        User profile not found. Please log in.
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">My Profile</h1>
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>User Information</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
+      <div className="card bg-base-100 shadow-lg">
+        <div className="card-body">
+          <div className="flex items-center gap-6 mb-6">
+            <div className="avatar placeholder">
+              <div className="w-24 rounded-full bg-primary text-primary-content">
+                <span className="text-4xl font-bold">
+                  {userProfile.name?.charAt(0) || "U"}
+                </span>
+              </div>
+            </div>
+            <div>
+              <h2 className="card-title text-2xl">{userProfile.name}</h2>
+              <p className="text-base-content/70 capitalize">
+                {userProfile.role}
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" value={userProfile?.name || ""} readOnly />
+            <div className="flex items-center gap-3">
+              <Mail className="h-5 w-5 text-primary" />
+              <span>{userProfile.email}</span>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                value={userProfile?.email || currentUser?.email || ""}
-                readOnly
-              />
-            </div>
+            {userProfile.phone && (
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-primary" />
+                <span>{userProfile.phone}</span>
+              </div>
+            )}
+            {userProfile.position && (
+              <div className="flex items-center gap-3">
+                <Briefcase className="h-5 w-5 text-primary" />
+                <span>{userProfile.position}</span>
+              </div>
+            )}
+            {userProfile.department && (
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-primary" />
+                <span>{userProfile.department}</span>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Input
-                id="role"
-                value={userProfile?.role || ""}
-                readOnly
-                className="capitalize"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              <Input
-                id="department"
-                value={userProfile?.department || "N/A"}
-                readOnly
-              />
-            </div>
+
+          <div className="card-actions justify-end mt-6">
+            <button className="btn btn-primary">Edit Profile</button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                value={userProfile?.position || "N/A"}
-                readOnly
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={userProfile?.phone || "N/A"} readOnly />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="createdAt">Member Since</Label>
-            <Input
-              id="createdAt"
-              value={
-                userProfile?.createdAt
-                  ? new Date(userProfile.createdAt).toLocaleDateString()
-                  : "N/A"
-              }
-              readOnly
-            />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

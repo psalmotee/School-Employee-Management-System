@@ -34,7 +34,7 @@ function App() {
       <Route path="/register" element={<RegistrationFlow />} />
 
       <Route
-        path="/"
+        path="/*"
         element={
           <ProtectedRoute>
             <Layout />
