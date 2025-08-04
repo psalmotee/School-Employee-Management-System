@@ -2,9 +2,9 @@
 
 import type React from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"; // Assuming shadcn/ui Card components are available
-import { Label } from "../components/ui/label";
-import { Input } from "../components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card"; // Assuming shadcn/ui Card components are available
+import { Label } from "../components/ui/Label";
+import { Input } from "../components/ui/Input";
 
 const Profile: React.FC = () => {
   const { userProfile, currentUser } = useAuth();
