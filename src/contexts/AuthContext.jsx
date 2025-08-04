@@ -1,9 +1,7 @@
 "use client";
 
-import type React from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  type User as FirebaseUser,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -11,22 +9,8 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
-import type { User } from "../types";
 
-interface AuthContextType {
-  currentUser: FirebaseUser | null;
-  userProfile: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    userData: Partial<User>
-  ) => Promise<void>;
-  logout: () => Promise<void>;
-  loading: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -36,27 +20,21 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [userProfile, setUserProfile] = useState<User | null>(null);
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
       throw new Error(error.message || "Failed to log in. Please try again");
     }
   };
 
-  const register = async (
-    email: string,
-    password: string,
-    userData: Partial<User>
-  ) => {
+  const register = async (email, password, userData) => {
     try {
       console.log("Starting user registration...", { email, userData });
 
@@ -69,9 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("User account created:", user.uid);
 
       // Prepare user profile data
-      const newUser: User = {
+      const newUser = {
         id: user.uid,
-        email: user.email!,
+        email: user.email,
         name: userData.name || "",
         role: userData.role || "employee",
         department: userData.department || "",
@@ -86,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Create user profile document
       await setDoc(doc(db, "users", user.uid), newUser);
       console.log("User profile created successfully");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Registration error:", error);
 
       // Handle specific Firebase errors
@@ -115,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       await signOut(auth);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Logout error:", error);
       throw new Error(error.message || "Failed to log out. Please try again");
     }
@@ -128,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (user) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-          setUserProfile(userDoc.data() as User);
+          setUserProfile(userDoc.data());
         }
       } else {
         setUserProfile(null);

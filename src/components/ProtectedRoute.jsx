@@ -1,18 +1,10 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requiredRole?: "admin" | "manager" | "employee";
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  requiredRole,
-}) => {
+const ProtectedRoute = ({ children, requiredRole }) => {
   const { currentUser, userProfile } = useAuth();
 
   if (!currentUser) {

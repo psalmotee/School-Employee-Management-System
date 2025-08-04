@@ -23,15 +23,14 @@ const requiredKeys = [
 
 const missingKeys = requiredKeys.filter(
   (key) =>
-    !firebaseConfig[key as keyof typeof firebaseConfig] ||
-    firebaseConfig[key as keyof typeof firebaseConfig] ===
-      `your-${key.toLowerCase().replace(/([A-Z])/g, "-$1")}-here`
+    !firebaseConfig[key] ||
+    firebaseConfig[key] === `your-${key.toLowerCase().replace(/([A-Z])/g, "-$1")}-here`
 );
 
 if (missingKeys.length > 0) {
   console.error("Missing Firebase configuration keys:", missingKeys);
   console.error(
-    "Please update src/lib/firebase.ts with your actual Firebase configuration"
+    "Please update src/lib/firebase.js with your actual Firebase configuration"
   );
 }
 

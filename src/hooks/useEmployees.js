@@ -16,15 +16,11 @@ import {
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth"; 
 import { db, Timestamp, auth } from "../lib/firebase"; 
-import type { Employee, UserRole } from "../types";
 
-export const useEmployees = (
-  userRole?: UserRole,
-  departmentId?: string | null
-) => {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+export const useEmployees = (userRole, departmentId) => {
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -39,7 +35,7 @@ export const useEmployees = (
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const employeesData: Employee[] = snapshot.docs.map((doc) => {
+        const employeesData = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
@@ -70,7 +66,7 @@ export const useEmployees = (
               data.updatedAt instanceof Timestamp
                 ? data.updatedAt.toDate()
                 : new Date(),
-          } as Employee;
+          };
         });
         setEmployees(employeesData);
         setLoading(false);
@@ -86,7 +82,7 @@ export const useEmployees = (
   }, [userRole, departmentId]);
 
   const getEmployeeById = useCallback(
-    async (id: string): Promise<Employee | null> => {
+    async (id) => {
       try {
         const docRef = doc(db, "employees", id);
         const docSnap = await getDoc(docRef);
@@ -121,10 +117,10 @@ export const useEmployees = (
               data.updatedAt instanceof Timestamp
                 ? data.updatedAt.toDate()
                 : new Date(),
-          } as Employee;
+          };
         }
         return null;
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error getting employee by ID:", err);
         setError(err.message);
         return null;
@@ -134,10 +130,7 @@ export const useEmployees = (
   );
 
   const addEmployee = useCallback(
-    async (
-      employeeData: Omit<Employee, "id" | "createdAt" | "updatedAt" | "userId">,
-      password?: string
-    ) => {
+    async (employeeData, password) => {
       try {
         let userId = employeeData.email; // Default to email if no auth user is created
 
@@ -159,7 +152,7 @@ export const useEmployees = (
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error adding employee:", err);
         throw new Error(err.message);
       }
@@ -168,10 +161,7 @@ export const useEmployees = (
   );
 
   const updateEmployee = useCallback(
-    async (
-      id: string,
-      employeeData: Partial<Omit<Employee, "id" | "createdAt">>
-    ) => {
+    async (id, employeeData) => {
       try {
         const docRef = doc(db, "employees", id);
         await updateDoc(docRef, {
@@ -184,7 +174,7 @@ export const useEmployees = (
             : undefined,
           updatedAt: serverTimestamp(),
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error updating employee:", err);
         throw new Error(err.message);
       }
@@ -192,10 +182,10 @@ export const useEmployees = (
     []
   );
 
-  const deleteEmployee = useCallback(async (id: string) => {
+  const deleteEmployee = useCallback(async (id) => {
     try {
       await deleteDoc(doc(db, "employees", id));
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error deleting employee:", err);
       throw new Error(err.message);
     }

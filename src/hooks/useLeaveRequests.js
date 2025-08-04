@@ -14,12 +14,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
-import type { LeaveRequest } from "../types";
 
 export const useLeaveRequests = () => {
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [leaveRequests, setLeaveRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const { userProfile } = useAuth();
 
   useEffect(() => {
@@ -49,7 +48,7 @@ export const useLeaveRequests = () => {
           createdAt: doc.data().createdAt?.toDate() || new Date(),
           updatedAt: doc.data().updatedAt?.toDate() || new Date(),
           approvedAt: doc.data().approvedAt?.toDate(),
-        })) as LeaveRequest[];
+        }));
 
         setLeaveRequests(requestList);
         setLoading(false);
@@ -64,9 +63,7 @@ export const useLeaveRequests = () => {
     return () => unsubscribe();
   }, [userProfile]);
 
-  const createLeaveRequest = async (
-    requestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
-  ) => {
+  const createLeaveRequest = async (requestData) => {
     try {
       setError(null);
       const docRef = await addDoc(collection(db, "leaveRequests"), {
@@ -76,17 +73,14 @@ export const useLeaveRequests = () => {
         updatedAt: new Date(),
       });
       return docRef.id;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating leave request:", error);
       setError(error.message || "Failed to create leave request");
       throw error;
     }
   };
 
-  const updateLeaveRequest = async (
-    id: string,
-    requestData: Partial<LeaveRequest>
-  ) => {
+  const updateLeaveRequest = async (id, requestData) => {
     try {
       setError(null);
       await updateDoc(doc(db, "leaveRequests", id), {
@@ -95,25 +89,25 @@ export const useLeaveRequests = () => {
         ...(requestData.status &&
           requestData.status !== "pending" && { approvedAt: new Date() }),
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating leave request:", error);
       setError(error.message || "Failed to update leave request");
       throw error;
     }
   };
 
-  const deleteLeaveRequest = async (id: string) => {
+  const deleteLeaveRequest = async (id) => {
     try {
       setError(null);
       await deleteDoc(doc(db, "leaveRequests", id));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting leave request:", error);
       setError(error.message || "Failed to delete leave request");
       throw error;
     }
   };
 
-  const approveLeaveRequest = async (id: string, approvedBy: string) => {
+  const approveLeaveRequest = async (id, approvedBy) => {
     await updateLeaveRequest(id, {
       status: "approved",
       approvedBy,
@@ -121,11 +115,7 @@ export const useLeaveRequests = () => {
     });
   };
 
-  const rejectLeaveRequest = async (
-    id: string,
-    approvedBy: string,
-    rejectionReason?: string
-  ) => {
+  const rejectLeaveRequest = async (id, approvedBy, rejectionReason) => {
     await updateLeaveRequest(id, {
       status: "rejected",
       approvedBy,
@@ -138,7 +128,7 @@ export const useLeaveRequests = () => {
     return leaveRequests.filter((req) => req.status === "pending");
   };
 
-  const getRequestsByStatus = (status: "pending" | "approved" | "rejected") => {
+  const getRequestsByStatus = (status) => {
     return leaveRequests.filter((req) => req.status === status);
   };
 

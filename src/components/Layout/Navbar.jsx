@@ -1,15 +1,11 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { Bell, LogOut, UserCircle } from "lucide-react";
+import { Bell, LogOut, UserCircle, Menu } from "lucide-react";
 
-interface NavbarProps {
-  toggleSidebar: () => void;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
+const Navbar = () => {
   const { userProfile, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -20,23 +16,10 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
     <div className="navbar bg-base-100 shadow-md px-4 py-2">
       <div className="flex-none lg:hidden">
         <label
-          htmlFor="my-drawer-2"
-          className="btn btn-square btn-ghost"
-          onClick={toggleSidebar}
+          htmlFor="drawer-toggle"
+          className="btn btn-square btn-ghost drawer-button"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="inline-block w-6 h-6 stroke-current"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            ></path>
-          </svg>
+          <Menu className="h-6 w-6" />
         </label>
       </div>
       <div className="flex-1">
@@ -53,9 +36,8 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
             <div className="indicator">
               <Bell className="h-6 w-6" />
               <span className="badge badge-sm indicator-item badge-primary">
-                99+
-              </span>{" "}
-              {/* Placeholder for notifications */}
+                3
+              </span>
             </div>
           </label>
           <div
@@ -63,7 +45,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
             className="mt-3 z-[1] card card-compact dropdown-content w-52 bg-base-100 shadow"
           >
             <div className="card-body">
-              <span className="font-bold text-lg">8 Notifications</span>
+              <span className="font-bold text-lg">3 Notifications</span>
               <span className="text-info">View all notifications</span>
               <div className="card-actions">
                 <Link to="/notifications" className="btn btn-primary btn-block">
@@ -76,7 +58,6 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
         <div className="dropdown dropdown-end">
           <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
             <div className="w-10 rounded-full">
-              {/* Placeholder for user avatar */}
               <UserCircle className="h-10 w-10 text-base-content/60" />
             </div>
           </label>

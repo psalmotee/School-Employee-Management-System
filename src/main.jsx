@@ -1,18 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
+import App from "./App.jsx";
 import "./index.css";
-import { AuthProvider } from "./contexts/AuthContext.tsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { BrowserRouter } from "react-router-dom";
-import ErrorBoundary from "./components/ErrorBoundary.tsx";
-// import FirebaseStatus from "./components/FirebaseStatus.tsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          {/* <FirebaseStatus /> */}
           <App />
         </AuthProvider>
       </BrowserRouter>

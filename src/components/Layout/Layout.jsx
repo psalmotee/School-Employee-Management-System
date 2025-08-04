@@ -1,9 +1,9 @@
-import type React from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
-const Layout: React.FC = () => {
+const Layout = () => {
   return (
     <div className="drawer lg:drawer-open">
       <input id="drawer-toggle" type="checkbox" className="drawer-toggle" />

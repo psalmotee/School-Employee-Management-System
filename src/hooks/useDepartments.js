@@ -11,12 +11,11 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-import type { Department } from "../types";
 
 export function useDepartments() {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const departmentsCollectionRef = collection(db, "departments");
 
   const getDepartments = useCallback(async () => {
@@ -26,7 +25,7 @@ export function useDepartments() {
       const q = query(departmentsCollectionRef, orderBy("name", "asc"));
       const data = await getDocs(q);
       const fetchedDepartments = data.docs.map((doc) => ({
-        ...(doc.data() as Department),
+        ...doc.data(),
         id: doc.id,
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt
@@ -34,7 +33,7 @@ export function useDepartments() {
           : doc.data().createdAt.toDate(),
       }));
       setDepartments(fetchedDepartments);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching departments:", err);
       setError(err.message);
     } finally {
@@ -46,12 +45,7 @@ export function useDepartments() {
     getDepartments();
   }, [getDepartments]);
 
-  const addDepartment = async (
-    department: Omit<
-      Department,
-      "id" | "createdAt" | "updatedAt" | "employeeCount"
-    >
-  ) => {
+  const addDepartment = async (department) => {
     setLoading(true);
     try {
       const newDepartment = {
@@ -63,7 +57,7 @@ export function useDepartments() {
       await addDoc(departmentsCollectionRef, newDepartment);
       await getDepartments();
       return { success: true };
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error adding department:", err);
       setError(err.message);
       return { success: false, error: err.message };
@@ -72,17 +66,14 @@ export function useDepartments() {
     }
   };
 
-  const updateDepartment = async (
-    id: string,
-    department: Partial<Omit<Department, "id" | "createdAt">>
-  ) => {
+  const updateDepartment = async (id, department) => {
     setLoading(true);
     try {
       const departmentDoc = doc(db, "departments", id);
       await updateDoc(departmentDoc, { ...department, updatedAt: new Date() });
       await getDepartments();
       return { success: true };
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error updating department:", err);
       setError(err.message);
       return { success: false, error: err.message };
@@ -91,14 +82,14 @@ export function useDepartments() {
     }
   };
 
-  const deleteDepartment = async (id: string) => {
+  const deleteDepartment = async (id) => {
     setLoading(true);
     try {
       const departmentDoc = doc(db, "departments", id);
       await deleteDoc(departmentDoc);
       await getDepartments();
       return { success: true };
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error deleting department:", err);
       setError(err.message);
       return { success: false, error: err.message };

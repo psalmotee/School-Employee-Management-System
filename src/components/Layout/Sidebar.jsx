@@ -1,11 +1,11 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { Link, useLocation } from "react-router-dom"
 import { LayoutDashboard, Users, Calendar, Building2, FileText, Settings, User } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
 
-const Sidebar: React.FC = () => {
+const Sidebar = () => {
   const location = useLocation()
   const { userProfile } = useAuth()
 

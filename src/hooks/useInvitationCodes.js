@@ -14,12 +14,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
-import type { InvitationCode } from "../types";
 
 export const useInvitationCodes = () => {
-  const [codes, setCodes] = useState<InvitationCode[]>([]);
+  const [codes, setCodes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const { userProfile, currentUser } = useAuth();
 
   useEffect(() => {
@@ -42,7 +41,7 @@ export const useInvitationCodes = () => {
           createdAt: doc.data().createdAt?.toDate() || new Date(),
           expiresAt: doc.data().expiresAt?.toDate() || new Date(),
           usedAt: doc.data().usedAt?.toDate(),
-        })) as InvitationCode[];
+        }));
 
         setCodes(codeList);
         setLoading(false);
@@ -57,7 +56,7 @@ export const useInvitationCodes = () => {
     return () => unsubscribe();
   }, [userProfile]);
 
-  const generateCode = async (role: "admin" | "manager", expiryDays = 7) => {
+  const generateCode = async (role, expiryDays = 7) => {
     if (!userProfile || !currentUser) {
       throw new Error("User not authenticated");
     }
@@ -82,7 +81,7 @@ export const useInvitationCodes = () => {
         currentUser,
       });
 
-      const codeData: Omit<InvitationCode, "id"> = {
+      const codeData = {
         code,
         role,
         createdBy: userId,
@@ -94,14 +93,14 @@ export const useInvitationCodes = () => {
 
       const docRef = await addDoc(collection(db, "invitationCodes"), codeData);
       return { id: docRef.id, code };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error generating invitation code:", error);
       setError(error.message || "Failed to generate invitation code");
       throw error;
     }
   };
 
-  const verifyCode = async (code: string): Promise<InvitationCode | null> => {
+  const verifyCode = async (code) => {
     try {
       setError(null);
 
@@ -129,7 +128,7 @@ export const useInvitationCodes = () => {
               createdAt: codeDoc.data().createdAt?.toDate() || new Date(),
               expiresAt: codeDoc.data().expiresAt?.toDate() || new Date(),
               usedAt: codeDoc.data().usedAt?.toDate(),
-            } as InvitationCode;
+            };
 
             // Check if code is expired
             if (codeData.expiresAt < new Date()) {
@@ -142,14 +141,14 @@ export const useInvitationCodes = () => {
           reject
         );
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error verifying invitation code:", error);
       setError(error.message || "Failed to verify invitation code");
       throw error;
     }
   };
 
-  const markCodeAsUsed = async (codeId: string, usedBy: string) => {
+  const markCodeAsUsed = async (codeId, usedBy) => {
     try {
       setError(null);
       await updateDoc(doc(db, "invitationCodes", codeId), {
@@ -157,25 +156,25 @@ export const useInvitationCodes = () => {
         usedBy,
         usedAt: new Date(),
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error marking code as used:", error);
       setError(error.message || "Failed to mark code as used");
       throw error;
     }
   };
 
-  const deleteCode = async (codeId: string) => {
+  const deleteCode = async (codeId) => {
     try {
       setError(null);
       await deleteDoc(doc(db, "invitationCodes", codeId));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting invitation code:", error);
       setError(error.message || "Failed to delete invitation code");
       throw error;
     }
   };
 
-  const getActiveCodesByRole = (role: "admin" | "manager") => {
+  const getActiveCodesByRole = (role) => {
     return codes.filter(
       (code) =>
         code.role === role && !code.isUsed && code.expiresAt > new Date()
