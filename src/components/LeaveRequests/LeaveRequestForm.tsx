@@ -1,27 +1,40 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useForm } from "react-hook-form"
-import { X, Calendar, FileText, Clock } from "lucide-react"
-import { useAuth } from "../../contexts/AuthContext"
-import type { LeaveRequest } from "../../types"
+import type React from "react";
+import { useForm } from "react-hook-form";
+import { X, Calendar, FileText, Clock } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import type { LeaveRequest } from "../../types";
 
 interface LeaveRequestFormProps {
-  leaveRequest?: LeaveRequest
-  onSubmit: (data: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">) => Promise<void>
-  onClose: () => void
-  loading?: boolean
+  leaveRequest?: LeaveRequest;
+  onSubmit: (
+    data: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
+  ) => Promise<void>;
+  onClose: () => void;
+  loading?: boolean;
 }
 
 interface LeaveRequestFormData {
-  leaveType: "sick" | "vacation" | "personal" | "maternity" | "paternity" | "emergency"
-  startDate: string
-  endDate: string
-  reason: string
+  leaveType:
+    | "sick"
+    | "vacation"
+    | "personal"
+    | "maternity"
+    | "paternity"
+    | "emergency";
+  startDate: string;
+  endDate: string;
+  reason: string;
 }
 
-const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSubmit, onClose, loading = false }) => {
-  const { userProfile } = useAuth()
+const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
+  leaveRequest,
+  onSubmit,
+  onClose,
+  loading = false,
+}) => {
+  const { userProfile } = useAuth();
   const {
     register,
     handleSubmit,
@@ -38,21 +51,21 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
           startDate: new Date().toISOString().split("T")[0],
           endDate: new Date().toISOString().split("T")[0],
         },
-  })
+  });
 
-  const startDate = watch("startDate")
-  const endDate = watch("endDate")
+  const startDate = watch("startDate");
+  const endDate = watch("endDate");
 
   const calculateDays = () => {
     if (startDate && endDate) {
-      const start = new Date(startDate)
-      const end = new Date(endDate)
-      const diffTime = Math.abs(end.getTime() - start.getTime())
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-      return diffDays
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      return diffDays;
     }
-    return 0
-  }
+    return 0;
+  };
 
   const leaveTypes = [
     { value: "sick", label: "Sick Leave", color: "badge-error" },
@@ -61,10 +74,10 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
     { value: "maternity", label: "Maternity Leave", color: "badge-accent" },
     { value: "paternity", label: "Paternity Leave", color: "badge-accent" },
     { value: "emergency", label: "Emergency Leave", color: "badge-warning" },
-  ]
+  ];
 
   const handleFormSubmit = async (data: LeaveRequestFormData) => {
-    if (!userProfile) return
+    if (!userProfile) return;
 
     const requestData = {
       employeeId: userProfile.id,
@@ -75,22 +88,28 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
       days: calculateDays(),
       reason: data.reason,
       status: "pending" as const,
-    }
+    };
 
-    await onSubmit(requestData)
-  }
+    await onSubmit(requestData);
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+
       <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-base-200">
-          <h2 className="text-2xl font-bold">{leaveRequest ? "Edit Leave Request" : "Submit Leave Request"}</h2>
+          <h2 className="text-2xl font-bold">
+            {leaveRequest ? "Edit Leave Request" : "Submit Leave Request"}
+          </h2>
           <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-6">
+        <form
+          onSubmit={handleSubmit(handleFormSubmit)}
+          className="p-6 space-y-6"
+        >
           {/* Employee Information */}
           <div className="card bg-base-200">
             <div className="card-body">
@@ -100,7 +119,12 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                   <label className="label">
                     <span className="label-text">Employee Name</span>
                   </label>
-                  <input type="text" value={userProfile?.name || ""} className="input input-bordered w-full" disabled />
+                  <input
+                    type="text"
+                    value={userProfile?.name || ""}
+                    className="input input-bordered w-full"
+                    disabled
+                  />
                 </div>
                 <div>
                   <label className="label">
@@ -127,8 +151,12 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                     <span className="label-text">Leave Type *</span>
                   </label>
                   <select
-                    className={`select select-bordered w-full ${errors.leaveType ? "select-error" : ""}`}
-                    {...register("leaveType", { required: "Leave type is required" })}
+                    className={`select select-bordered w-full ${
+                      errors.leaveType ? "select-error" : ""
+                    }`}
+                    {...register("leaveType", {
+                      required: "Leave type is required",
+                    })}
                   >
                     <option value="">Select Leave Type</option>
                     {leaveTypes.map((type) => (
@@ -139,7 +167,9 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                   </select>
                   {errors.leaveType && (
                     <label className="label">
-                      <span className="label-text-alt text-error">{errors.leaveType.message}</span>
+                      <span className="label-text-alt text-error">
+                        {errors.leaveType.message}
+                      </span>
                     </label>
                   )}
                 </div>
@@ -152,14 +182,20 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                     <div className="relative">
                       <input
                         type="date"
-                        className={`input input-bordered w-full pl-10 ${errors.startDate ? "input-error" : ""}`}
-                        {...register("startDate", { required: "Start date is required" })}
+                        className={`input input-bordered w-full pl-10 ${
+                          errors.startDate ? "input-error" : ""
+                        }`}
+                        {...register("startDate", {
+                          required: "Start date is required",
+                        })}
                       />
                       <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
                     </div>
                     {errors.startDate && (
                       <label className="label">
-                        <span className="label-text-alt text-error">{errors.startDate.message}</span>
+                        <span className="label-text-alt text-error">
+                          {errors.startDate.message}
+                        </span>
                       </label>
                     )}
                   </div>
@@ -171,14 +207,16 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                     <div className="relative">
                       <input
                         type="date"
-                        className={`input input-bordered w-full pl-10 ${errors.endDate ? "input-error" : ""}`}
+                        className={`input input-bordered w-full pl-10 ${
+                          errors.endDate ? "input-error" : ""
+                        }`}
                         {...register("endDate", {
                           required: "End date is required",
                           validate: (value) => {
                             if (startDate && value < startDate) {
-                              return "End date must be after start date"
+                              return "End date must be after start date";
                             }
-                            return true
+                            return true;
                           },
                         })}
                       />
@@ -186,7 +224,9 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                     </div>
                     {errors.endDate && (
                       <label className="label">
-                        <span className="label-text-alt text-error">{errors.endDate.message}</span>
+                        <span className="label-text-alt text-error">
+                          {errors.endDate.message}
+                        </span>
                       </label>
                     )}
                   </div>
@@ -197,7 +237,8 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                   <div className="alert alert-info">
                     <Clock className="h-5 w-5" />
                     <span>
-                      Duration: {calculateDays()} day{calculateDays() > 1 ? "s" : ""}
+                      Duration: {calculateDays()} day
+                      {calculateDays() > 1 ? "s" : ""}
                     </span>
                   </div>
                 )}
@@ -209,7 +250,9 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                   <div className="relative">
                     <textarea
                       placeholder="Please provide a detailed reason for your leave request..."
-                      className={`textarea textarea-bordered w-full pl-10 pt-3 ${errors.reason ? "textarea-error" : ""}`}
+                      className={`textarea textarea-bordered w-full pl-10 pt-3 ${
+                        errors.reason ? "textarea-error" : ""
+                      }`}
                       rows={4}
                       {...register("reason", {
                         required: "Reason is required",
@@ -223,7 +266,9 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
                   </div>
                   {errors.reason && (
                     <label className="label">
-                      <span className="label-text-alt text-error">{errors.reason.message}</span>
+                      <span className="label-text-alt text-error">
+                        {errors.reason.message}
+                      </span>
                     </label>
                   )}
                 </div>
@@ -236,14 +281,22 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
             <button type="button" onClick={onClose} className="btn btn-outline">
               Cancel
             </button>
-            <button type="submit" className={`btn btn-primary ${loading ? "loading" : ""}`} disabled={loading}>
-              {loading ? "Submitting..." : leaveRequest ? "Update Request" : "Submit Request"}
+            <button
+              type="submit"
+              className={`btn btn-primary ${loading ? "loading" : ""}`}
+              disabled={loading}
+            >
+              {loading
+                ? "Submitting..."
+                : leaveRequest
+                ? "Update Request"
+                : "Submit Request"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LeaveRequestForm
+export default LeaveRequestForm;

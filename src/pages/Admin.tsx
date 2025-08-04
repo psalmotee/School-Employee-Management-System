@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Shield, Key, Users, Settings, BarChart3 } from "lucide-react"
-import { useAuth } from "../contexts/AuthContext"
-import InvitationCodeManager from "../components/Admin/InvitationCodeManager"
+import type React from "react";
+import { useState } from "react";
+import { Shield, Key, Users, Settings, BarChart3 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import InvitationCodeManager from "../components/Admin/InvitationCodeManager";
 
 const Admin: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("codes")
-  const { userProfile } = useAuth()
+  const [activeTab, setActiveTab] = useState("codes");
+  const { userProfile } = useAuth();
 
   if (userProfile?.role !== "admin") {
     return (
@@ -18,7 +18,7 @@ const Admin: React.FC = () => {
           <span>Access denied. Administrator privileges required.</span>
         </div>
       </div>
-    )
+    );
   }
 
   const tabs = [
@@ -26,7 +26,7 @@ const Admin: React.FC = () => {
     { id: "users", label: "User Management", icon: Users },
     { id: "settings", label: "System Settings", icon: Settings },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -36,23 +36,27 @@ const Admin: React.FC = () => {
           <Shield className="h-8 w-8 text-primary" />
           Administration
         </h1>
-        <p className="text-base-content/60">System administration and management</p>
+        <p className="text-base-content/60">
+          System administration and management
+        </p>
       </div>
 
       {/* Tabs */}
       <div className="tabs tabs-boxed">
         {tabs.map((tab) => {
-          const Icon = tab.icon
+          const Icon = tab.icon;
           return (
             <button
               key={tab.id}
-              className={`tab gap-2 ${activeTab === tab.id ? "tab-active" : ""}`}
+              className={`tab gap-2 ${
+                activeTab === tab.id ? "tab-active" : ""
+              }`}
               onClick={() => setActiveTab(tab.id)}
             >
               <Icon className="h-4 w-4" />
               {tab.label}
             </button>
-          )
+          );
         })}
       </div>
 
@@ -79,7 +83,7 @@ const Admin: React.FC = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Admin
+export default Admin;

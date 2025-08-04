@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Plus, Copy, Trash2, Clock, CheckCircle, Key, Users, Shield } from "lucide-react"
+import { Plus, Copy, Trash2, Clock, CheckCircle, Key, Users, Shield, X } from "lucide-react"
 import { format } from "date-fns"
 import { useInvitationCodes } from "../../hooks/useInvitationCodes"
 import { useAuth } from "../../contexts/AuthContext"
@@ -90,9 +90,14 @@ const InvitationCodeManager: React.FC = () => {
             <Key className="h-7 w-7 text-primary" />
             Invitation Codes
           </h2>
-          <p className="text-base-content/60">Generate and manage registration codes</p>
+          <p className="text-base-content/60">
+            Generate and manage registration codes
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
+        <button
+          className="btn btn-primary"
+          onClick={() => setShowGenerateModal(true)}
+        >
           <Plus className="h-5 w-5" />
           Generate Code
         </button>
@@ -102,13 +107,17 @@ const InvitationCodeManager: React.FC = () => {
       <div className="stats shadow w-full">
         <div className="stat">
           <div className="stat-title">Active Admin Codes</div>
-          <div className="stat-value text-error">{getActiveCodesByRole("admin").length}</div>
+          <div className="stat-value text-error">
+            {getActiveCodesByRole("admin").length}
+          </div>
           <div className="stat-desc">Ready to use</div>
         </div>
 
         <div className="stat">
           <div className="stat-title">Active Manager Codes</div>
-          <div className="stat-value text-warning">{getActiveCodesByRole("manager").length}</div>
+          <div className="stat-value text-warning">
+            {getActiveCodesByRole("manager").length}
+          </div>
           <div className="stat-desc">Ready to use</div>
         </div>
 
@@ -120,7 +129,9 @@ const InvitationCodeManager: React.FC = () => {
 
         <div className="stat">
           <div className="stat-title">Expired Codes</div>
-          <div className="stat-value text-neutral">{getExpiredCodes().length}</div>
+          <div className="stat-value text-neutral">
+            {getExpiredCodes().length}
+          </div>
           <div className="stat-desc">Need cleanup</div>
         </div>
       </div>
@@ -146,7 +157,9 @@ const InvitationCodeManager: React.FC = () => {
                   <tr key={code.id}>
                     <td>
                       <div className="flex items-center gap-2">
-                        <code className="font-mono text-lg font-bold">{code.code}</code>
+                        <code className="font-mono text-lg font-bold">
+                          {code.code}
+                        </code>
                         <button
                           className="btn btn-ghost btn-xs"
                           onClick={() => handleCopyCode(code.code)}
@@ -163,7 +176,9 @@ const InvitationCodeManager: React.FC = () => {
                     <td>
                       <div className="flex items-center gap-2">
                         {getRoleIcon(code.role)}
-                        <span className="capitalize font-medium">{code.role}</span>
+                        <span className="capitalize font-medium">
+                          {code.role}
+                        </span>
                       </div>
                     </td>
                     <td>{code.createdByName}</td>
@@ -171,7 +186,9 @@ const InvitationCodeManager: React.FC = () => {
                     <td>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-base-content/60" />
-                        <span className="text-sm">{format(code.expiresAt, "MMM dd, yyyy")}</span>
+                        <span className="text-sm">
+                          {format(code.expiresAt, "MMM dd, yyyy")}
+                        </span>
                       </div>
                     </td>
                     <td>
@@ -206,9 +223,16 @@ const InvitationCodeManager: React.FC = () => {
           {codes.length === 0 && (
             <div className="text-center py-8">
               <Key className="h-16 w-16 text-base-content/20 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No invitation codes</h3>
-              <p className="text-base-content/60 mb-4">Generate your first invitation code to get started</p>
-              <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
+              <h3 className="text-xl font-semibold mb-2">
+                No invitation codes
+              </h3>
+              <p className="text-base-content/60 mb-4">
+                Generate your first invitation code to get started
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowGenerateModal(true)}
+              >
                 <Plus className="h-5 w-5" />
                 Generate Code
               </button>
@@ -219,10 +243,20 @@ const InvitationCodeManager: React.FC = () => {
 
       {/* Generate Code Modal */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div
+          onClick={() => setShowGenerateModal(false)}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        >
           <div className="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="font-bold text-lg mb-4">Generate Invitation Code</h3>
-
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg">Generate Invitation Code</h3>
+              <button className="btn btn-circle btn-sm  btn-ghost">
+                <X
+                  className="h-5 w-5"
+                  onClick={() => setShowGenerateModal(false)}
+                />
+              </button>
+            </div>
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
@@ -231,7 +265,9 @@ const InvitationCodeManager: React.FC = () => {
                 <select
                   className="select select-bordered w-full"
                   value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as "admin" | "manager")}
+                  onChange={(e) =>
+                    setSelectedRole(e.target.value as "admin" | "manager")
+                  }
                 >
                   <option value="manager">Manager</option>
                   <option value="admin">Administrator</option>
@@ -253,18 +289,25 @@ const InvitationCodeManager: React.FC = () => {
                   type="number"
                   className="input input-bordered w-full"
                   value={expiryDays}
-                  onChange={(e) => setExpiryDays(Number.parseInt(e.target.value) || 7)}
+                  onChange={(e) =>
+                    setExpiryDays(Number.parseInt(e.target.value) || 7)
+                  }
                   min={1}
                   max={30}
                 />
                 <label className="label">
-                  <span className="label-text-alt">Code will expire in {expiryDays} days</span>
+                  <span className="label-text-alt">
+                    Code will expire in {expiryDays} days
+                  </span>
                 </label>
               </div>
             </div>
 
             <div className="flex justify-end gap-4 mt-6">
-              <button className="btn btn-outline" onClick={() => setShowGenerateModal(false)}>
+              <button
+                className="btn btn-outline"
+                onClick={() => setShowGenerateModal(false)}
+              >
                 Cancel
               </button>
               <button
@@ -289,7 +332,7 @@ const InvitationCodeManager: React.FC = () => {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export default InvitationCodeManager

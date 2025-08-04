@@ -1,39 +1,39 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { auth, db } from "../lib/firebase"
-import { doc, getDoc } from "firebase/firestore"
-import { CheckCircle, XCircle, AlertCircle, WifiOff } from "lucide-react"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { auth, db } from "../lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { CheckCircle, XCircle, AlertCircle, WifiOff } from "lucide-react";
 
 const FirebaseStatus: React.FC = () => {
   const [status, setStatus] = useState({
     auth: "checking",
     firestore: "checking",
     config: "checking",
-  })
+  });
 
   useEffect(() => {
-    checkFirebaseStatus()
-  }, [])
+    checkFirebaseStatus();
+  }, []);
 
   const checkFirebaseStatus = async () => {
     // Check Firebase config
-    const configStatus = checkConfig()
+    const configStatus = checkConfig();
 
     // Check Auth
-    const authStatus = auth ? "connected" : "error"
+    const authStatus = auth ? "connected" : "error";
 
     // Check Firestore
-    let firestoreStatus = "error"
+    let firestoreStatus = "error";
     try {
       // Try to read from a test document
-      await getDoc(doc(db, "test", "connection"))
-      firestoreStatus = "connected"
+      await getDoc(doc(db, "test", "connection"));
+      firestoreStatus = "connected";
     } catch (error: any) {
-      console.error("Firestore connection error:", error)
+      console.error("Firestore connection error:", error);
       if (error.code === "permission-denied") {
-        firestoreStatus = "permission-denied"
+        firestoreStatus = "permission-denied";
       }
     }
 
@@ -41,57 +41,58 @@ const FirebaseStatus: React.FC = () => {
       auth: authStatus,
       firestore: firestoreStatus,
       config: configStatus,
-    })
-  }
+    });
+  };
 
   const checkConfig = () => {
     try {
-      const config = auth.app.options
-      const requiredFields = ["apiKey", "authDomain", "projectId"]
+      const config = auth.app.options;
+      const requiredFields = ["apiKey", "authDomain", "projectId"];
       const hasAllFields = requiredFields.every(
         (field) =>
-          config[field as keyof typeof config] && !String(config[field as keyof typeof config]).includes("your-"),
-      )
-      return hasAllFields ? "connected" : "error"
+          config[field as keyof typeof config] &&
+          !String(config[field as keyof typeof config]).includes("your-")
+      );
+      return hasAllFields ? "connected" : "error";
     } catch {
-      return "error"
+      return "error";
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "connected":
-        return <CheckCircle className="h-5 w-5 text-success" />
+        return <CheckCircle className="h-5 w-5 text-success" />;
       case "checking":
-        return <AlertCircle className="h-5 w-5 text-warning animate-pulse" />
+        return <AlertCircle className="h-5 w-5 text-warning animate-pulse" />;
       case "permission-denied":
-        return <XCircle className="h-5 w-5 text-warning" />
+        return <XCircle className="h-5 w-5 text-warning" />;
       default:
-        return <XCircle className="h-5 w-5 text-error" />
+        return <XCircle className="h-5 w-5 text-error" />;
     }
-  }
+  };
 
   const getStatusText = (service: string, status: string) => {
-    if (status === "checking") return "Checking..."
-    if (status === "connected") return "Connected"
-    if (status === "permission-denied") return "Rules not set"
+    if (status === "checking") return "Checking...";
+    if (status === "connected") return "Connected";
+    if (status === "permission-denied") return "Rules not set";
 
     switch (service) {
       case "config":
-        return "Config missing"
+        return "Config missing";
       case "auth":
-        return "Auth failed"
+        return "Auth failed";
       case "firestore":
-        return "Connection failed"
+        return "Connection failed";
       default:
-        return "Error"
+        return "Error";
     }
-  }
+  };
 
   // Only show if there are issues
-  const hasIssues = Object.values(status).some((s) => s !== "connected")
+  const hasIssues = Object.values(status).some((s) => s !== "connected");
 
-  if (!hasIssues) return null
+  if (!hasIssues) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -127,7 +128,9 @@ const FirebaseStatus: React.FC = () => {
           {status.config === "error" && (
             <div className="alert alert-warning mt-2 p-2">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-xs">Update Firebase config in src/lib/firebase.ts</span>
+              <span className="text-xs">
+                Update Firebase config in src/lib/firebase.ts
+              </span>
             </div>
           )}
           {status.firestore === "permission-denied" && (
@@ -139,7 +142,7 @@ const FirebaseStatus: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FirebaseStatus
+export default FirebaseStatus;

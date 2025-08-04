@@ -1,54 +1,68 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { Key, ArrowRight, AlertCircle, GraduationCap } from "lucide-react"
-import { useInvitationCodes } from "../../hooks/useInvitationCodes"
-import type { InvitationCode } from "../../types"
+import type React from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Key, ArrowRight, AlertCircle, GraduationCap } from "lucide-react";
+import { useInvitationCodes } from "../../hooks/useInvitationCodes";
+import type { InvitationCode } from "../../types";
+import { useNavigate } from "react-router-dom";
 
 interface CodeVerificationProps {
-  onCodeVerified: (code: InvitationCode) => void
-  onBack: () => void
+  onCodeVerified: (code: InvitationCode) => void;
+  onBack: () => void;
 }
 
 interface CodeFormData {
-  code: string
+  code: string;
 }
 
-const CodeVerification: React.FC<CodeVerificationProps> = ({ onCodeVerified, onBack }) => {
-  const [loading, setLoading] = useState(false)
-  const [verificationError, setVerificationError] = useState<string | null>(null)
-  const { verifyCode } = useInvitationCodes()
+const CodeVerification: React.FC<CodeVerificationProps> = ({
+  onCodeVerified,
+  onBack,
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  );
+  const { verifyCode } = useInvitationCodes();
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<CodeFormData>()
+  } = useForm<CodeFormData>();
 
   const onSubmit = async (data: CodeFormData) => {
-    setLoading(true)
-    setVerificationError(null)
+    setLoading(true);
+    setVerificationError(null);
 
     try {
-      const codeData = await verifyCode(data.code)
+      const codeData = await verifyCode(data.code);
 
       if (!codeData) {
-        setVerificationError("Invalid or expired invitation code")
-        setError("code", { message: "Invalid or expired invitation code" })
-        return
+        setVerificationError("Invalid or expired invitation code");
+        setError("code", { message: "Invalid or expired invitation code" });
+        return;
       }
 
-      onCodeVerified(codeData)
+      onCodeVerified(codeData);
     } catch (error: any) {
-      setVerificationError(error.message || "Failed to verify code")
-      setError("code", { message: "Verification failed" })
+      setVerificationError(error.message || "Failed to verify code");
+      setError("code", { message: "Verification failed" });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const handleBack = () => {
+    onBack();
+    navigate("/login");
+    setVerificationError(null);
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
@@ -73,7 +87,9 @@ const CodeVerification: React.FC<CodeVerificationProps> = ({ onCodeVerified, onB
                 <input
                   type="text"
                   placeholder="Enter 8-character code"
-                  className={`input input-bordered w-full pl-10 uppercase tracking-wider ${errors.code ? "input-error" : ""}`}
+                  className={`input input-bordered w-full pl-10 uppercase tracking-wider ${
+                    errors.code ? "input-error" : ""
+                  }`}
                   maxLength={8}
                   {...register("code", {
                     required: "Invitation code is required",
@@ -91,15 +107,17 @@ const CodeVerification: React.FC<CodeVerificationProps> = ({ onCodeVerified, onB
                     },
                   })}
                   onChange={(e) => {
-                    e.target.value = e.target.value.toUpperCase()
-                    setVerificationError(null)
+                    e.target.value = e.target.value.toUpperCase();
+                    setVerificationError(null);
                   }}
                 />
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
               </div>
               {errors.code && (
                 <label className="label">
-                  <span className="label-text-alt text-error">{errors.code.message}</span>
+                  <span className="label-text-alt text-error">
+                    {errors.code.message}
+                  </span>
                 </label>
               )}
             </div>
@@ -112,7 +130,11 @@ const CodeVerification: React.FC<CodeVerificationProps> = ({ onCodeVerified, onB
             )}
 
             <div className="form-control mt-6">
-              <button type="submit" className={`btn btn-primary w-full ${loading ? "loading" : ""}`} disabled={loading}>
+              <button
+                type="submit"
+                className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
+                disabled={loading}
+              >
                 {loading ? (
                   "Verifying..."
                 ) : (
@@ -129,7 +151,7 @@ const CodeVerification: React.FC<CodeVerificationProps> = ({ onCodeVerified, onB
 
           <div className="text-center">
             <p className="text-sm mb-4">Don't have an invitation code?</p>
-            <button onClick={onBack} className="btn btn-outline btn-sm">
+            <button onClick={handleBack} className="btn btn-outline btn-sm">
               Back to Login
             </button>
           </div>
@@ -146,7 +168,7 @@ const CodeVerification: React.FC<CodeVerificationProps> = ({ onCodeVerified, onB
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CodeVerification
+export default CodeVerification;

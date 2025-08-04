@@ -1,36 +1,50 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useForm } from "react-hook-form"
-import { useAuth } from "../../contexts/AuthContext"
-import { useInvitationCodes } from "../../hooks/useInvitationCodes"
-import { Mail, Lock, User, Building2, Briefcase, Phone, Eye, EyeOff, GraduationCap, Shield } from "lucide-react"
-import type { InvitationCode } from "../../types"
+import type React from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { useAuth } from "../../contexts/AuthContext";
+import { useInvitationCodes } from "../../hooks/useInvitationCodes";
+import {
+  Mail,
+  Lock,
+  User,
+  Building2,
+  Briefcase,
+  Phone,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Shield,
+} from "lucide-react";
+import type { InvitationCode } from "../../types";
 
 interface RegisterFormProps {
-  invitationCode: InvitationCode
-  onBack: () => void
+  invitationCode: InvitationCode;
+  onBack: () => void;
 }
 
 interface RegisterFormData {
-  name: string
-  email: string
-  password: string
-  confirmPassword: string
-  department: string
-  position: string
-  phone: string
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  department: string;
+  position: string;
+  phone: string;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) => {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const { register: registerUser } = useAuth()
-  const { markCodeAsUsed } = useInvitationCodes()
-  const navigate = useNavigate()
+const RegisterForm: React.FC<RegisterFormProps> = ({
+  invitationCode,
+  onBack,
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { register: registerUser } = useAuth();
+  const { markCodeAsUsed } = useInvitationCodes();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -38,8 +52,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
     formState: { errors },
     watch,
     setError,
-  } = useForm<RegisterFormData>()
-  const password = watch("password")
+  } = useForm<RegisterFormData>();
+  const password = watch("password");
 
   const departments = [
     "Administration",
@@ -50,10 +64,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
     "Maintenance",
     "Security",
     "Library",
-  ]
+  ];
 
   const onSubmit = async (data: RegisterFormData) => {
-    setLoading(true)
+    setLoading(true);
     try {
       // Register the user with the role from the invitation code
       await registerUser(data.email, data.password, {
@@ -62,18 +76,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
         position: data.position,
         phone: data.phone,
         role: invitationCode.role,
-      })
+      });
 
       // Mark the invitation code as used
-      await markCodeAsUsed(invitationCode.id, data.email)
+      await markCodeAsUsed(invitationCode.id, data.email);
 
-      navigate("/dashboard")
+      navigate("/dashboard");
     } catch (error: any) {
-      setError("email", { message: "Failed to create account. Email may already exist." })
+      setError("email", {
+        message: "Failed to create account. Email may already exist.",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getRoleInfo = () => {
     if (invitationCode.role === "admin") {
@@ -83,7 +99,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
         color: "text-error",
         bgColor: "bg-error/10",
         icon: Shield,
-      }
+      };
     } else {
       return {
         title: "Manager Account",
@@ -91,12 +107,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
         color: "text-warning",
         bgColor: "bg-warning/10",
         icon: Shield,
-      }
+      };
     }
-  }
+  };
 
-  const roleInfo = getRoleInfo()
-  const RoleIcon = roleInfo.icon
+  const roleInfo = getRoleInfo();
+  const RoleIcon = roleInfo.icon;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 py-8">
@@ -116,10 +132,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
           <div className={`alert ${roleInfo.bgColor} mb-6`}>
             <RoleIcon className={`h-6 w-6 ${roleInfo.color}`} />
             <div>
-              <h3 className={`font-bold ${roleInfo.color}`}>{roleInfo.title}</h3>
+              <h3 className={`font-bold ${roleInfo.color}`}>
+                {roleInfo.title}
+              </h3>
               <div className="text-sm">{roleInfo.description}</div>
               <div className="text-xs mt-1 opacity-70">
-                Code: {invitationCode.code} • Created by: {invitationCode.createdByName}
+                Code: {invitationCode.code} • Created by:{" "}
+                {invitationCode.createdByName}
               </div>
             </div>
           </div>
@@ -134,14 +153,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                   <input
                     type="text"
                     placeholder="Enter your full name"
-                    className={`input input-bordered w-full pl-10 ${errors.name ? "input-error" : ""}`}
+                    className={`input input-bordered w-full pl-10 ${
+                      errors.name ? "input-error" : ""
+                    }`}
                     {...register("name", { required: "Name is required" })}
                   />
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
                 </div>
                 {errors.name && (
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.name.message}</span>
+                    <span className="label-text-alt text-error">
+                      {errors.name.message}
+                    </span>
                   </label>
                 )}
               </div>
@@ -154,7 +177,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
+                    className={`input input-bordered w-full pl-10 ${
+                      errors.email ? "input-error" : ""
+                    }`}
                     {...register("email", {
                       required: "Email is required",
                       pattern: {
@@ -167,7 +192,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                 </div>
                 {errors.email && (
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.email.message}</span>
+                    <span className="label-text-alt text-error">
+                      {errors.email.message}
+                    </span>
                   </label>
                 )}
               </div>
@@ -182,7 +209,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    className={`input input-bordered w-full pl-10 pr-10 ${errors.password ? "input-error" : ""}`}
+                    className={`input input-bordered w-full pl-10 pr-10 ${
+                      errors.password ? "input-error" : ""
+                    }`}
                     {...register("password", {
                       required: "Password is required",
                       minLength: {
@@ -206,7 +235,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                 </div>
                 {errors.password && (
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.password.message}</span>
+                    <span className="label-text-alt text-error">
+                      {errors.password.message}
+                    </span>
                   </label>
                 )}
               </div>
@@ -219,10 +250,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
-                    className={`input input-bordered w-full pl-10 pr-10 ${errors.confirmPassword ? "input-error" : ""}`}
+                    className={`input input-bordered w-full pl-10 pr-10 ${
+                      errors.confirmPassword ? "input-error" : ""
+                    }`}
                     {...register("confirmPassword", {
                       required: "Please confirm your password",
-                      validate: (value) => value === password || "Passwords do not match",
+                      validate: (value) =>
+                        value === password || "Passwords do not match",
                     })}
                   />
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
@@ -240,7 +274,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                 </div>
                 {errors.confirmPassword && (
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.confirmPassword.message}</span>
+                    <span className="label-text-alt text-error">
+                      {errors.confirmPassword.message}
+                    </span>
                   </label>
                 )}
               </div>
@@ -253,8 +289,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                 </label>
                 <div className="relative">
                   <select
-                    className={`select select-bordered w-full pl-10 ${errors.department ? "select-error" : ""}`}
-                    {...register("department", { required: "Department is required" })}
+                    className={`select select-bordered w-full pl-10 ${
+                      errors.department ? "select-error" : ""
+                    }`}
+                    {...register("department", {
+                      required: "Department is required",
+                    })}
                   >
                     <option value="">Select Department</option>
                     {departments.map((dept) => (
@@ -267,7 +307,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                 </div>
                 {errors.department && (
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.department.message}</span>
+                    <span className="label-text-alt text-error">
+                      {errors.department.message}
+                    </span>
                   </label>
                 )}
               </div>
@@ -280,14 +322,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                   <input
                     type="text"
                     placeholder="Enter your position"
-                    className={`input input-bordered w-full pl-10 ${errors.position ? "input-error" : ""}`}
-                    {...register("position", { required: "Position is required" })}
+                    className={`input input-bordered w-full pl-10 ${
+                      errors.position ? "input-error" : ""
+                    }`}
+                    {...register("position", {
+                      required: "Position is required",
+                    })}
                   />
                   <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
                 </div>
                 {errors.position && (
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.position.message}</span>
+                    <span className="label-text-alt text-error">
+                      {errors.position.message}
+                    </span>
                   </label>
                 )}
               </div>
@@ -301,20 +349,30 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
                 <input
                   type="tel"
                   placeholder="Enter your phone number"
-                  className={`input input-bordered w-full pl-10 ${errors.phone ? "input-error" : ""}`}
-                  {...register("phone", { required: "Phone number is required" })}
+                  className={`input input-bordered w-full pl-10 ${
+                    errors.phone ? "input-error" : ""
+                  }`}
+                  {...register("phone", {
+                    required: "Phone number is required",
+                  })}
                 />
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
               </div>
               {errors.phone && (
                 <label className="label">
-                  <span className="label-text-alt text-error">{errors.phone.message}</span>
+                  <span className="label-text-alt text-error">
+                    {errors.phone.message}
+                  </span>
                 </label>
               )}
             </div>
 
             <div className="form-control mt-6">
-              <button type="submit" className={`btn btn-primary w-full ${loading ? "loading" : ""}`} disabled={loading}>
+              <button
+                type="submit"
+                className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
+                disabled={loading}
+              >
                 {loading ? "Creating Account..." : "Create Account"}
               </button>
             </div>
@@ -336,7 +394,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) =
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RegisterForm
+export default RegisterForm;
