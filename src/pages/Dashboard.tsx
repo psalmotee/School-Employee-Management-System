@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { Users, Calendar, Building2, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react"
+import { Link } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 
 const Dashboard: React.FC = () => {

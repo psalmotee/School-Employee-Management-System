@@ -1,17 +1,33 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
-import { AuthProvider } from "./contexts/AuthContext"
-import Layout from "./components/Layout/Layout"
-import ProtectedRoute from "./components/ProtectedRoute"
-import LoginForm from "./components/Auth/LoginForm"
-import RegistrationFlow from "./components/Auth/RegistrationFlow"
-import Dashboard from "./pages/Dashboard"
-import Employees from "./pages/Employees"
-import LeaveRequests from "./pages/LeaveRequests"
-import ErrorBoundary from "./components/ErrorBoundary"
-// import FirebaseStatus from "./components/FirebaseStatus"
-import Admin from "./pages/Admin"
+"use client";
+
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./components/Layout/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginForm from "./components/Auth/LoginForm";
+import RegistrationFlow from "./components/Auth/RegistrationFlow";
+import Dashboard from "./pages/Dashboard";
+import Employees from "./pages/Employees";
+import LeaveRequests from "./pages/LeaveRequests";
+import Departments from "./pages/Departments";
+import Reports from "./pages/Reports";
+import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
+import { useAuth } from "./contexts/AuthContext";
 
 function App() {
+  const { currentUser, loading, userProfile } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-base-200">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="ml-3 text-lg text-base-content">Loading application...</p>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/login" element={<LoginForm />} />
@@ -43,4 +59,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
