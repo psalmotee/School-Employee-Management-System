@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card"; // Assuming shadcn/ui Card components are available
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
 import { Label } from "../components/ui/Label";
 import { Input } from "../components/ui/Input";
 
