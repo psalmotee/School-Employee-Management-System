@@ -93,13 +93,12 @@ export interface LeaveRequest {
 }
 
 export interface Department {
-  id: string;
-  name: string;
-  description?: string;
-  managerName?: string;
-  employeeCount?: number;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  name: string
+  description: string
+  managerId?: string
+  employeeCount: number
+  createdAt: Date
 }
 
 export interface InvitationCode {
