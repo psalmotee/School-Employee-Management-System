@@ -4,11 +4,50 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="refresh" content="0; url=/School-Employee-Management-System/" />
-    <title>School EMS</title>
+    <title>Redirecting — School EMS</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f3f4f6; /* light gray bg */
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: #1f2937; /* base-content */
+      }
+
+      .spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #3b82f6;
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .message {
+        margin-left: 12px;
+        font-size: 1rem;
+      }
+
+      .container {
+        display: flex;
+        align-items: center;
+      }
+    </style>
   </head>
   <body>
-    <div className="flex justify-center items-center min-h-screen bg-base-200">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
+    <div class="container">
+      <div class="spinner"></div>
+      <p class="message">Loading application...</p>
+    </div>
   </body>
 </html>
