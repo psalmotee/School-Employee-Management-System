@@ -38,7 +38,13 @@ const Dashboard: React.FC = () => {
   }).length;
 
   const recentLeaveRequestsDisplay = leaveRequests
-    .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime())
+    .sort((a, b) => {
+      const aDate =
+        a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+      const bDate =
+        b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+      return bDate.getTime() - aDate.getTime();
+    })
     .slice(0, 3); // Show top 3 recent requests
 
   const stats = [
