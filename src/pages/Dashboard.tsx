@@ -1,9 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Users, Calendar, Building2, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react"
-import { Link } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
+import type React from "react";
+import {
+  Users,
+  Calendar,
+  Building2,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useEmployees } from "../hooks/useEmployees";
+import { useLeaveRequests } from "../hooks/useLeaveRequests";
+import { useDepartments } from "../hooks/useDepartments";
+import { Link } from "react-router-dom";
 
 const Dashboard: React.FC = () => {
   const { userProfile } = useAuth();
@@ -67,38 +79,42 @@ const Dashboard: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "approved":
-        return <CheckCircle className="h-5 w-5 text-success" />
+        return <CheckCircle className="h-5 w-5 text-success" />;
       case "rejected":
-        return <XCircle className="h-5 w-5 text-error" />
+        return <XCircle className="h-5 w-5 text-error" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-warning" />
+        return <AlertCircle className="h-5 w-5 text-warning" />;
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "badge badge-sm"
+    const baseClasses = "badge badge-sm";
     switch (status) {
       case "approved":
-        return `${baseClasses} badge-success`
+        return `${baseClasses} badge-success`;
       case "rejected":
-        return `${baseClasses} badge-error`
+        return `${baseClasses} badge-error`;
       default:
-        return `${baseClasses} badge-warning`
+        return `${baseClasses} badge-warning`;
     }
-  }
+  };
 
   return (
     <div className="p-6 space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-6 text-primary-content">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, {userProfile?.name}! 👋</h1>
-        <p className="text-primary-content/80">Here's what's happening in your school today.</p>
+        <h1 className="text-3xl font-bold mb-2">
+          Welcome back, {userProfile?.name}! 👋
+        </h1>
+        <p className="text-primary-content/80">
+          Here's what's happening in your school today.
+        </p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
-          const Icon = stat.icon
+          const Icon = stat.icon;
           return (
             <div key={index} className="card bg-base-100 shadow-lg">
               <div className="card-body">
@@ -108,9 +124,19 @@ const Dashboard: React.FC = () => {
                     <p className="text-2xl font-bold">{stat.value}</p>
                     <div className="flex items-center gap-1 mt-1">
                       <TrendingUp
-                        className={`h-4 w-4 ${stat.changeType === "increase" ? "text-success" : "text-error"}`}
+                        className={`h-4 w-4 ${
+                          stat.changeType === "increase"
+                            ? "text-success"
+                            : "text-error"
+                        }`}
                       />
-                      <span className={`text-sm ${stat.changeType === "increase" ? "text-success" : "text-error"}`}>
+                      <span
+                        className={`text-sm ${
+                          stat.changeType === "increase"
+                            ? "text-success"
+                            : "text-error"
+                        }`}
+                      >
                         {stat.change}
                       </span>
                     </div>
@@ -121,7 +147,7 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -215,7 +241,6 @@ const Dashboard: React.FC = () => {
                   <th>Department</th>
                   <th>Employees</th>
                   <th>Manager</th>
-                  <th>Manager</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -254,7 +279,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

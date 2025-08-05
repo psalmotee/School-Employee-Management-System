@@ -17,7 +17,7 @@ import Admin from "./pages/Admin";
 import { useAuth } from "./contexts/AuthContext";
 
 function App() {
-  const { currentUser, loading, userProfile } = useAuth();
+  const { loading, userProfile } = useAuth();
 
   if (loading) {
     return (
@@ -34,7 +34,7 @@ function App() {
       <Route path="/register" element={<RegistrationFlow />} />
 
       <Route
-        path="/*"
+        path="/"
         element={
           <ProtectedRoute>
             <Layout />

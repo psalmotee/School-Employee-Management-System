@@ -81,7 +81,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSub
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-base-200">
           <h2 className="text-2xl font-bold">{leaveRequest ? "Edit Leave Request" : "Submit Leave Request"}</h2>

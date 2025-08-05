@@ -13,7 +13,7 @@ const Sidebar: React.FC = () => {
     { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/employees", icon: Users, label: "Employees", adminOnly: false },
     { path: "/leave-requests", icon: Calendar, label: "Leave Requests" },
-    { path: "/departments", icon: Building2, label: "Departments", adminOnly: true },
+    { path: "/departments", icon: Building2, label: "Departments"},
     { path: "/admin", icon: Settings, label: "Administration", adminOnly: true },
     { path: "/reports", icon: FileText, label: "Reports", adminOnly: true },
     { path: "/profile", icon: User, label: "Profile" },
