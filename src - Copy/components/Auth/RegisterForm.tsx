@@ -1,0 +1,342 @@
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { useAuth } from "../../contexts/AuthContext"
+import { useInvitationCodes } from "../../hooks/useInvitationCodes"
+import { Mail, Lock, User, Building2, Briefcase, Phone, Eye, EyeOff, GraduationCap, Shield } from "lucide-react"
+import type { InvitationCode } from "../../types"
+
+interface RegisterFormProps {
+  invitationCode: InvitationCode
+  onBack: () => void
+}
+
+interface RegisterFormData {
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
+  department: string
+  position: string
+  phone: string
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ invitationCode, onBack }) => {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { register: registerUser } = useAuth()
+  const { markCodeAsUsed } = useInvitationCodes()
+  const navigate = useNavigate()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setError,
+  } = useForm<RegisterFormData>()
+  const password = watch("password")
+
+  const departments = [
+    "Administration",
+    "Teaching Staff",
+    "IT Department",
+    "Human Resources",
+    "Finance",
+    "Maintenance",
+    "Security",
+    "Library",
+  ]
+
+  const onSubmit = async (data: RegisterFormData) => {
+    setLoading(true)
+    try {
+      // Register the user with the role from the invitation code
+      await registerUser(data.email, data.password, {
+        name: data.name,
+        department: data.department,
+        position: data.position,
+        phone: data.phone,
+        role: invitationCode.role,
+      })
+
+      // Mark the invitation code as used
+      await markCodeAsUsed(invitationCode.id, data.email)
+
+      navigate("/dashboard")
+    } catch (error: any) {
+      setError("email", { message: "Failed to create account. Email may already exist." })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getRoleInfo = () => {
+    if (invitationCode.role === "admin") {
+      return {
+        title: "Administrator Account",
+        description: "Full system access and management capabilities",
+        color: "text-error",
+        bgColor: "bg-error/10",
+        icon: Shield,
+      }
+    } else {
+      return {
+        title: "Manager Account",
+        description: "Department management and employee oversight",
+        color: "text-warning",
+        bgColor: "bg-warning/10",
+        icon: Shield,
+      }
+    }
+  }
+
+  const roleInfo = getRoleInfo()
+  const RoleIcon = roleInfo.icon
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 py-8">
+      <div className="card w-full max-w-2xl bg-base-100 shadow-2xl">
+        <div className="card-body">
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-primary rounded-full">
+                <GraduationCap className="h-8 w-8 text-primary-content" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-primary">Create Account</h1>
+            <p className="text-base-content/60">Complete your registration</p>
+          </div>
+
+          {/* Role Information */}
+          <div className={`alert ${roleInfo.bgColor} mb-6`}>
+            <RoleIcon className={`h-6 w-6 ${roleInfo.color}`} />
+            <div>
+              <h3 className={`font-bold ${roleInfo.color}`}>{roleInfo.title}</h3>
+              <div className="text-sm">{roleInfo.description}</div>
+              <div className="text-xs mt-1 opacity-70">
+                Code: {invitationCode.code} • Created by: {invitationCode.createdByName}
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Full Name *</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    className={`input input-bordered w-full pl-10 ${errors.name ? "input-error" : ""}`}
+                    {...register("name", { required: "Name is required" })}
+                  />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
+                </div>
+                {errors.name && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.name.message}</span>
+                  </label>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Email *</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^\S+@\S+$/i,
+                        message: "Invalid email address",
+                      },
+                    })}
+                  />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
+                </div>
+                {errors.email && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.email.message}</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Password *</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className={`input input-bordered w-full pl-10 pr-10 ${errors.password ? "input-error" : ""}`}
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-base-content/40" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-base-content/40" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.password.message}</span>
+                  </label>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Confirm Password *</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    className={`input input-bordered w-full pl-10 pr-10 ${errors.confirmPassword ? "input-error" : ""}`}
+                    {...register("confirmPassword", {
+                      required: "Please confirm your password",
+                      validate: (value) => value === password || "Passwords do not match",
+                    })}
+                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-base-content/40" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-base-content/40" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.confirmPassword.message}</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Department *</span>
+                </label>
+                <div className="relative">
+                  <select
+                    className={`select select-bordered w-full pl-10 ${errors.department ? "select-error" : ""}`}
+                    {...register("department", { required: "Department is required" })}
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40 pointer-events-none" />
+                </div>
+                {errors.department && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.department.message}</span>
+                  </label>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Position *</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Enter your position"
+                    className={`input input-bordered w-full pl-10 ${errors.position ? "input-error" : ""}`}
+                    {...register("position", { required: "Position is required" })}
+                  />
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
+                </div>
+                {errors.position && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.position.message}</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Phone Number *</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  className={`input input-bordered w-full pl-10 ${errors.phone ? "input-error" : ""}`}
+                  {...register("phone", { required: "Phone number is required" })}
+                />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
+              </div>
+              {errors.phone && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{errors.phone.message}</span>
+                </label>
+              )}
+            </div>
+
+            <div className="form-control mt-6">
+              <button type="submit" className={`btn btn-primary w-full ${loading ? "loading" : ""}`} disabled={loading}>
+                {loading ? "Creating Account..." : "Create Account"}
+              </button>
+            </div>
+          </form>
+
+          <div className="divider">OR</div>
+
+          <div className="text-center">
+            <button onClick={onBack} className="btn btn-outline btn-sm">
+              Use Different Code
+            </button>
+            <p className="text-sm mt-2">
+              Already have an account?{" "}
+              <Link to="/login" className="link link-primary">
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default RegisterForm
