@@ -41,7 +41,6 @@ const Employees: React.FC = () => {
     } catch (error) {
       console.error("Failed to create employee:", error)
     }
-    
   }
 
   const handleUpdateEmployee = async (employeeData: Omit<Employee, "id" | "createdAt" | "updatedAt">) => {

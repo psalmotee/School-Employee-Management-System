@@ -1,249 +1,320 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useForm } from "react-hook-form"
-import { X, Calendar, FileText, Clock } from "lucide-react"
-import { useAuth } from "../../contexts/AuthContext"
-import type { LeaveRequest } from "../../types"
+import type React from "react";
+import { useState, useEffect } from "react";
+import type { Employee, UserRole } from "../../types";
+import { useDepartments } from "../../hooks/useDepartments";
+import { Save, X } from "lucide-react";
 
-interface LeaveRequestFormProps {
-  leaveRequest?: LeaveRequest
-  onSubmit: (data: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">) => Promise<void>
-  onClose: () => void
-  loading?: boolean
+interface EmployeeFormProps {
+  employee?: Employee | null;
+  onSubmit: (
+    employeeData: Omit<Employee, "id" | "createdAt" | "updatedAt" | "userId">,
+    password?: string
+  ) => Promise<void>;
+  onClose: () => void;
+  loading: boolean;
+  error: string | null;
 }
 
-interface LeaveRequestFormData {
-  leaveType: "sick" | "vacation" | "personal" | "maternity" | "paternity" | "emergency"
-  startDate: string
-  endDate: string
-  reason: string
-}
-
-const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSubmit, onClose, loading = false }) => {
-  const { userProfile } = useAuth()
+const EmployeeForm: React.FC<EmployeeFormProps> = ({
+  employee,
+  onSubmit,
+  onClose,
+  loading,
+  error,
+}) => {
   const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<LeaveRequestFormData>({
-    defaultValues: leaveRequest
-      ? {
-          ...leaveRequest,
-          startDate: leaveRequest.startDate.toISOString().split("T")[0],
-          endDate: leaveRequest.endDate.toISOString().split("T")[0],
-        }
-      : {
-          startDate: new Date().toISOString().split("T")[0],
-          endDate: new Date().toISOString().split("T")[0],
-        },
-  })
+    departments,
+    loading: departmentsLoading,
+    error: departmentsError,
+  } = useDepartments();
 
-  const startDate = watch("startDate")
-  const endDate = watch("endDate")
+  const [name, setName] = useState(employee?.name || "");
+  const [email, setEmail] = useState(employee?.email || "");
+  const [phone, setPhone] = useState(employee?.phone || "");
+  const [address, setAddress] = useState(employee?.address || "");
+  const [dateOfBirth, setDateOfBirth] = useState(
+    employee?.dateOfBirth?.toISOString().split("T")[0] || ""
+  );
+  const [hireDate, setHireDate] = useState(
+    employee?.hireDate?.toISOString().split("T")[0] || ""
+  );
+  const [jobTitle, setJobTitle] = useState(employee?.jobTitle || "");
+  const [departmentId, setDepartmentId] = useState(
+    employee?.departmentId || ""
+  );
+  const [salary, setSalary] = useState(employee?.salary || 0);
+  const [status, setStatus] = useState(employee?.status || "active");
+  const [role, setRole] = useState<UserRole>(employee?.role || "employee");
+  const [password, setPassword] = useState(""); // New password state
 
-  const calculateDays = () => {
-    if (startDate && endDate) {
-      const start = new Date(startDate)
-      const end = new Date(endDate)
-      const diffTime = Math.abs(end.getTime() - start.getTime())
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-      return diffDays
+  useEffect(() => {
+    if (employee) {
+      setName(employee.name);
+      setEmail(employee.email);
+      setPhone(employee.phone);
+      setAddress(employee.address);
+      setDateOfBirth(employee.dateOfBirth?.toISOString().split("T")[0] || "");
+      setHireDate(employee.hireDate?.toISOString().split("T")[0] || "");
+      setJobTitle(employee.jobTitle);
+      setDepartmentId(employee.departmentId);
+      setSalary(employee.salary);
+      setStatus(employee.status);
+      setRole(employee.role);
+      setPassword(""); // Clear password field when editing
+    } else {
+      // Reset form for new employee
+      setName("");
+      setEmail("");
+      setPhone("");
+      setAddress("");
+      setDateOfBirth("");
+      setHireDate("");
+      setJobTitle("");
+      setDepartmentId("");
+      setSalary(0);
+      setStatus("active");
+      setRole("employee");
+      setPassword("");
     }
-    return 0
-  }
+  }, [employee]);
 
-  const leaveTypes = [
-    { value: "sick", label: "Sick Leave", color: "badge-error" },
-    { value: "vacation", label: "Vacation", color: "badge-primary" },
-    { value: "personal", label: "Personal Leave", color: "badge-secondary" },
-    { value: "maternity", label: "Maternity Leave", color: "badge-accent" },
-    { value: "paternity", label: "Paternity Leave", color: "badge-accent" },
-    { value: "emergency", label: "Emergency Leave", color: "badge-warning" },
-  ]
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleFormSubmit = async (data: LeaveRequestFormData) => {
-    if (!userProfile) return
-
-    const requestData = {
-      employeeId: userProfile.id,
-      employeeName: userProfile.name,
-      leaveType: data.leaveType,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
-      days: calculateDays(),
-      reason: data.reason,
-      status: "pending" as const,
+    const selectedDepartment = departments.find(
+      (dept) => dept.id === departmentId
+    );
+    if (!selectedDepartment) {
+      alert("Please select a valid department.");
+      return;
     }
 
-    await onSubmit(requestData)
-  }
+    if (!employee && !password) {
+      // Password is required for new employees
+      alert("Password is required for new employee accounts.");
+      return;
+    }
+
+    const employeeData: Omit<
+      Employee,
+      "id" | "createdAt" | "updatedAt" | "userId"
+    > = {
+      name,
+      email,
+      phone,
+      address,
+      dateOfBirth: new Date(dateOfBirth),
+      hireDate: new Date(hireDate),
+      jobTitle,
+      department: selectedDepartment.name, // Denormalize department name
+      departmentId,
+      salary: Number(salary),
+      status: status as "active" | "on-leave" | "terminated" | "inactive",
+      role: role as UserRole,
+    };
+
+    await onSubmit(employeeData, employee ? undefined : password); // Pass password only for new employees
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-base-200">
-          <h2 className="text-2xl font-bold">{leaveRequest ? "Edit Leave Request" : "Submit Leave Request"}</h2>
-          <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
-            <X className="h-5 w-5" />
-          </button>
+    <form onSubmit={handleSubmit} className="py-4 space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Full Name</span>
+          </label>
+          <input
+            type="text"
+            placeholder="John Doe"
+            className="input input-bordered w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
         </div>
-
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-6">
-          {/* Employee Information */}
-          <div className="card bg-base-200">
-            <div className="card-body">
-              <h3 className="card-title text-lg">Employee Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="label">
-                    <span className="label-text">Employee Name</span>
-                  </label>
-                  <input type="text" value={userProfile?.name || ""} className="input input-bordered w-full" disabled />
-                </div>
-                <div>
-                  <label className="label">
-                    <span className="label-text">Department</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={userProfile?.department || ""}
-                    className="input input-bordered w-full"
-                    disabled
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Leave Details */}
-          <div className="card bg-base-200">
-            <div className="card-body">
-              <h3 className="card-title text-lg">Leave Details</h3>
-              <div className="space-y-4">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Leave Type *</span>
-                  </label>
-                  <select
-                    className={`select select-bordered w-full ${errors.leaveType ? "select-error" : ""}`}
-                    {...register("leaveType", { required: "Leave type is required" })}
-                  >
-                    <option value="">Select Leave Type</option>
-                    {leaveTypes.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.leaveType && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{errors.leaveType.message}</span>
-                    </label>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Start Date *</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        className={`input input-bordered w-full pl-10 ${errors.startDate ? "input-error" : ""}`}
-                        {...register("startDate", { required: "Start date is required" })}
-                      />
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-                    </div>
-                    {errors.startDate && (
-                      <label className="label">
-                        <span className="label-text-alt text-error">{errors.startDate.message}</span>
-                      </label>
-                    )}
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">End Date *</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        className={`input input-bordered w-full pl-10 ${errors.endDate ? "input-error" : ""}`}
-                        {...register("endDate", {
-                          required: "End date is required",
-                          validate: (value) => {
-                            if (startDate && value < startDate) {
-                              return "End date must be after start date"
-                            }
-                            return true
-                          },
-                        })}
-                      />
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-                    </div>
-                    {errors.endDate && (
-                      <label className="label">
-                        <span className="label-text-alt text-error">{errors.endDate.message}</span>
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                {/* Duration Display */}
-                {startDate && endDate && (
-                  <div className="alert alert-info">
-                    <Clock className="h-5 w-5" />
-                    <span>
-                      Duration: {calculateDays()} day{calculateDays() > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                )}
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Reason *</span>
-                  </label>
-                  <div className="relative">
-                    <textarea
-                      placeholder="Please provide a detailed reason for your leave request..."
-                      className={`textarea textarea-bordered w-full pl-10 pt-3 ${errors.reason ? "textarea-error" : ""}`}
-                      rows={4}
-                      {...register("reason", {
-                        required: "Reason is required",
-                        minLength: {
-                          value: 10,
-                          message: "Reason must be at least 10 characters",
-                        },
-                      })}
-                    />
-                    <FileText className="absolute left-3 top-3 h-5 w-5 text-base-content/40" />
-                  </div>
-                  {errors.reason && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{errors.reason.message}</span>
-                    </label>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end gap-4 pt-4 border-t border-base-200">
-            <button type="button" onClick={onClose} className="btn btn-outline">
-              Cancel
-            </button>
-            <button type="submit" className={`btn btn-primary ${loading ? "loading" : ""}`} disabled={loading}>
-              {loading ? "Submitting..." : leaveRequest ? "Update Request" : "Submit Request"}
-            </button>
-          </div>
-        </form>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Email</span>
+          </label>
+          <input
+            type="email"
+            placeholder="john.doe@example.com"
+            className="input input-bordered w-full"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">
+              Password {employee ? "(Leave blank to keep current)" : ""}
+            </span>
+          </label>
+          <input
+            type="password"
+            placeholder={employee ? "********" : "Enter password"}
+            className="input input-bordered w-full"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required={!employee} // Required only for new employees
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Phone</span>
+          </label>
+          <input
+            type="tel"
+            placeholder="123-456-7890"
+            className="input input-bordered w-full"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Address</span>
+          </label>
+          <input
+            type="text"
+            placeholder="123 Main St, Anytown"
+            className="input input-bordered w-full"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Date of Birth</span>
+          </label>
+          <input
+            type="date"
+            className="input input-bordered w-full"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Hire Date</span>
+          </label>
+          <input
+            type="date"
+            className="input input-bordered w-full"
+            value={hireDate}
+            onChange={(e) => setHireDate(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Job Title</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Software Engineer"
+            className="input input-bordered w-full"
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Department</span>
+          </label>
+          {departmentsLoading ? (
+            <span className="loading loading-spinner"></span>
+          ) : departmentsError ? (
+            <p className="text-error text-sm">{departmentsError}</p>
+          ) : (
+            <select
+              className="select select-bordered w-full"
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+              required
+            >
+              <option value="" disabled>
+                Select Department
+              </option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Salary</span>
+          </label>
+          <input
+            type="number"
+            placeholder="50000"
+            className="input input-bordered w-full"
+            value={salary}
+            onChange={(e) => setSalary(Number(e.target.value))}
+            required
+          />
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Status</span>
+          </label>
+          <select
+            className="select select-bordered w-full"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="active">Active</option>
+            <option value="on-leave">On Leave</option>
+            <option value="terminated">Terminated</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Role</span>
+          </label>
+          <select
+            className="select select-bordered w-full"
+            value={role}
+            onChange={(e) => setRole(e.target.value as UserRole)}
+          >
+            <option value="employee">Employee</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
       </div>
-    </div>
-  )
-}
 
-export default LeaveRequestForm
+      {error && (
+        <div className="alert alert-error text-sm">
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="modal-action">
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={onClose}
+          disabled={loading}
+        >
+          <X className="h-5 w-5" /> Cancel
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          <Save className="h-5 w-5" />{" "}
+          {employee ? "Update Employee" : "Add Employee"}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+export default EmployeeForm;

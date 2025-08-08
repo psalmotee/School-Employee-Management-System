@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar"
 
 const Layout: React.FC = () => {
   return (
-    <div className="drawer md:drawer-open">
+    <div className="drawer lg:drawer-open">
       <input id="drawer-toggle" type="checkbox" className="drawer-toggle" />
 
       <div className="drawer-content flex flex-col">

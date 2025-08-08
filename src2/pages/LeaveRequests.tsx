@@ -33,11 +33,10 @@ const LeaveRequests: React.FC = () => {
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  // Get userProfile and auth loading state from AuthContext
-  const { userProfile, loading: authLoading } = useAuth();
+  const { userProfile } = useAuth();
   const {
     leaveRequests,
-    loading: leaveRequestsLoading, // Renamed to avoid conflict with authLoading
+    loading,
     error,
     createLeaveRequest,
     updateLeaveRequest,
@@ -169,8 +168,7 @@ const LeaveRequests: React.FC = () => {
     );
   };
 
-  // Combine loading states: show loading if auth is still loading OR leave requests are loading
-  if (authLoading || leaveRequestsLoading) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <span className="loading loading-spinner loading-lg"></span>
