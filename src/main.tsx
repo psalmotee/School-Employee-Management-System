@@ -9,7 +9,7 @@ import ErrorBoundary from "./components/ErrorBoundary.tsx";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <BrowserRouter basename="/School-Employee-Management-System">
+      <BrowserRouter>
         <AuthProvider>
           <App />
         </AuthProvider>
