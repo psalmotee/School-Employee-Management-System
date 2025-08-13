@@ -20,8 +20,8 @@ import { useAuth } from "../contexts/AuthContext";
 import LeaveRequestForm from "../components/LeaveRequests/LeaveRequestForm";
 import LeaveRequestDetails from "../components/LeaveRequests/LeaveRequestDetails";
 import type { LeaveRequest } from "../types";
-import { Input } from "../components/ui/Input";
-import { Select } from "../components/ui/Select";
+import Input from "../components/ui/Input";
+import Select from "../components/ui/Select";
 import Button from "../components/ui/Button";
 
 const LeaveRequests: React.FC = () => {
@@ -39,9 +39,6 @@ const LeaveRequests: React.FC = () => {
     null
   );
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
-  // const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(
-  //   null
-  // );
   const [rejectionReason, setRejectionReason] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
 
@@ -153,23 +150,10 @@ const LeaveRequests: React.FC = () => {
     }
   };
 
-  // const handleCancel = async (requestId: string | null) => {
-  //   if (!requestId || !userProfile) return;
-  //   try {
-  //     await cancelLeaveRequest(
-  //       requestId,
-  //       userProfile.name || userProfile.email || "User"
-  //     );
-  //     setShowCancelConfirm(null);
-  //   } catch (e) {
-  //     console.error("Failed to cancel request:", e);
-  //   }
-  // };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -202,23 +186,23 @@ const LeaveRequests: React.FC = () => {
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Total Requests</div>
-          <div className="text-2xl font-bold">{leaveRequests.length}</div>
-          <div className="text-xs text-gray-400">All time</div>
+          <p className="text-sm text-gray-500">Total Requests</p>
+          <p className="text-2xl font-bold">{leaveRequests.length}</p>
+          <p className="text-xs text-gray-400">All time</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Pending Requests</div>
-          <div className="text-2xl font-bold text-yellow-600">
+          <p className="text-sm text-gray-500">Pending Requests</p>
+          <p className="text-2xl font-bold text-yellow-600">
             {leaveRequests.filter((r) => r.status === "pending").length}
-          </div>
-          <div className="text-xs text-gray-400">Awaiting approval</div>
+          </p>
+          <p className="text-xs text-gray-400">Awaiting approval</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-500">Approved Requests</div>
-          <div className="text-2xl font-bold text-green-600">
+          <p className="text-sm text-gray-500">Approved Requests</p>
+          <p className="text-2xl font-bold text-green-600">
             {leaveRequests.filter((r) => r.status === "approved").length}
-          </div>
-          <div className="text-xs text-gray-400">This year</div>
+          </p>
+          <p className="text-xs text-gray-400">This year</p>
         </div>
       </div>
 
@@ -382,21 +366,6 @@ const LeaveRequests: React.FC = () => {
                       </Button>
                     </>
                   )}
-                  {/* {(userProfile?.id === request.employeeId ||
-                    userProfile?.role === "admin" ||
-                    userProfile?.role === "manager") &&
-                    (request.status === "pending" ||
-                      request.status === "approved") && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-orange-600 hover:text-orange-900 mr-2"
-                        title="Cancel Request"
-                        onClick={() => setShowCancelConfirm(request.id)}
-                      >
-                        <Ban size={18} />
-                      </Button>
-                    )} */}
                 </td>
               </tr>
             ))}
@@ -419,7 +388,7 @@ const LeaveRequests: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="font-bold text-lg mb-4">Confirm Delete</h3>
             <p className="mb-6">
@@ -445,7 +414,7 @@ const LeaveRequests: React.FC = () => {
 
       {/* Reject Leave Request Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="font-bold text-lg mb-4">Reject Leave Request</h3>
             <div className="mb-6">
@@ -477,36 +446,6 @@ const LeaveRequests: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Cancel Confirmation Modal */}
-      {/* {showCancelConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center mb-4">
-              <Ban className="text-orange-500 mr-3" size={24} />
-              <h3 className="font-bold text-lg">Cancel Leave Request</h3>
-            </div>
-            <p className="mb-6 text-gray-600">
-              Are you sure you want to cancel this leave request? This action
-              cannot be undone.
-            </p>
-            <div className="flex justify-end gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowCancelConfirm(null)}
-              >
-                Keep Request
-              </Button>
-              <Button
-                variant="warning"
-                onClick={() => handleCancel(showCancelConfirm)}
-              >
-                Cancel Request
-              </Button>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {/* Leave Request Details Modal */}
       {viewingRequest && (

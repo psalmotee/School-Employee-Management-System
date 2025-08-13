@@ -57,7 +57,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button className={buttonClasses} disabled={isDisabled} {...props}>
       {loading && (
-        <span className="loading loading-spinner loading-sm mr-2"></span>
+        <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></span>
       )}
       {!loading && Icon && iconPosition === "left" && (
         <Icon

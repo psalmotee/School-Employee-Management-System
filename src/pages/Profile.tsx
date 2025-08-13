@@ -9,10 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/Card";
-import { Label } from "../components/ui/Label";
-import { Input } from "../components/ui/Input";
-// import { Textarea } from "../components/ui/Textarea";
-import { Button } from "../components/ui/Button";
+import Label from "../components/ui/Label";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 import {
   User,
   Mail,

@@ -1,6 +1,6 @@
 import React from "react";
 
-export const Label = React.forwardRef<
+const Label = React.forwardRef<
   HTMLLabelElement,
   React.LabelHTMLAttributes<HTMLLabelElement>
 >(({ className = "", ...props }, ref) => (
@@ -11,3 +11,5 @@ export const Label = React.forwardRef<
   />
 ));
 Label.displayName = "Label";
+
+export default Label;

@@ -72,8 +72,8 @@ const Departments: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
       </div>
     );
   }

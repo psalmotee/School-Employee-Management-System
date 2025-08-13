@@ -97,7 +97,7 @@ const Employees: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -132,25 +132,25 @@ const Employees: React.FC = () => {
       {/* Stats Section */}
       <div className="stats stats-vertical lg:stats-horizontal shadow bg-base-100 mb-6 w-full">
         <div className="stat">
-          <div className="stat-title">Total Employees</div>
-          <div className="stat-value">{employees.length}</div>
-          <div className="stat-desc">As of today</div>
+          <p className="stat-title">Total Employees</p>
+          <p className="stat-value">{employees.length}</p>
+          <p className="stat-desc">As of today</p>
         </div>
 
         <div className="stat">
-          <div className="stat-title">Active Employees</div>
-          <div className="stat-value text-success">
+          <p className="stat-title">Active Employees</p>
+          <p className="stat-value text-success">
             {employees.filter((e) => e.status === "active").length}
-          </div>
-          <div className="stat-desc">Currently working</div>
+          </p>
+          <p className="stat-desc">Currently working</p>
         </div>
 
         <div className="stat">
-          <div className="stat-title">Departments</div>
-          <div className="stat-value text-secondary">
+          <p className="stat-title">Departments</p>
+          <p className="stat-value text-secondary">
             {new Set(employees.map((e) => e.department)).size}
-          </div>
-          <div className="stat-desc">Active departments</div>
+          </p>
+          <p className="stat-desc">Active departments</p>
         </div>
       </div>
 

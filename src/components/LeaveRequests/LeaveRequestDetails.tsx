@@ -3,6 +3,8 @@
 import React from "react";
 import { X, Calendar, User, Info, CheckCircle, XCircle } from "lucide-react";
 import type { LeaveRequest } from "../../types";
+import Button from "../../components/ui/Button";
+
 
 interface LeaveRequestDetailsProps {
   request: LeaveRequest;
@@ -18,9 +20,9 @@ const LeaveRequestDetails: React.FC<LeaveRequestDetailsProps> = ({
       <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-base-200">
           <h2 className="text-2xl font-bold">Leave Request Details</h2>
-          <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
+          <Button onClick={onClose} variant="ghost" size="sm" className="btn-circle">
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
         <div className="p-6 space-y-4">
           <div className="flex items-center space-x-3">
@@ -106,9 +108,9 @@ const LeaveRequestDetails: React.FC<LeaveRequestDetailsProps> = ({
           )}
         </div>
         <div className="p-6 border-t border-base-200 flex justify-end">
-          <button onClick={onClose} className="btn btn-primary">
+          <Button onClick={onClose} variant="secondary">
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </div>
