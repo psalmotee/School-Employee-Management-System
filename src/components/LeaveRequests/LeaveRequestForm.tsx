@@ -164,7 +164,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full relative shadow-xl">
         <button
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
@@ -296,17 +296,13 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
           </div>
 
           <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-            >
+            <button type="button" onClick={onClose} className="btn btn-outline">
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
+              className={`btn btn-primary ${
+                loading ? "loading" : ""
               }`}
               disabled={loading}
             >

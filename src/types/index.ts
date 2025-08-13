@@ -72,4 +72,5 @@ export interface Department {
   employeeCount: number;
   createdAt: Date;
   updatedAt: Date | Timestamp;
+  managerName?: string; // Optional field for manager's name
 }

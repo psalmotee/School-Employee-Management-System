@@ -102,8 +102,8 @@ const Departments: React.FC = () => {
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold flex items-center">
-          <Building2 className="mr-3 text-primary" size={32} />
+        <h1 className="text-3xl font-bold text-base-content">
+          <Building2 className="mr-2 inline-block" size={32} />
           Departments
         </h1>
         {isManagerOrAdmin && (
@@ -158,7 +158,7 @@ const Departments: React.FC = () => {
                 {isManagerOrAdmin && (
                   <>
                     <button
-                      className="btn btn-sm btn-ghost"
+                      className="btn btn-sm btn-ghost text-warning"
                       onClick={() => {
                         setEditingDepartment(department);
                         setShowForm(true);
