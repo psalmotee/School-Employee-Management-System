@@ -13,11 +13,11 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
-import Admin from "./pages/Admin";
+// import Admin from "./pages/Admin";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
-  const { loading, userProfile, isAuthReady } = useAuth();
+  const { loading, isAuthReady } = useAuth();
 
   // Show a full-screen loading spinner while Firebase auth is initializing
   if (loading || !isAuthReady) {
@@ -52,10 +52,10 @@ function App() {
         <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
         {/* Admin route is only visible if the user role is 'admin' */}
-        {userProfile?.role === "admin" && (
+        {/* {userProfile?.role === "admin" && (
           <Route path="admin" element={<Admin />} />
         )}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
       </Route>
     </Routes>
   );

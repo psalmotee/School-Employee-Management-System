@@ -62,14 +62,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setCurrentUser(user);
 
       if (user) {
-        // Fetch user profile from Firestore
+        // First check users collection (for admin/manager)
         const userDoc = await getDoc(doc(db, "users", user.uid));
+        let foundInUsers = false;
+
         if (userDoc.exists()) {
           setUserProfile(userDoc.data() as User);
+          foundInUsers = true;
         } else {
-          // If the user doc doesn't exist, it means the account was just created by a manager,
-          // and we need to wait for that document to be created.
-          setUserProfile(null);
+          // If not found in users, check employees collection
+          const employeeDoc = await getDoc(doc(db, "employees", user.uid));
+          if (employeeDoc.exists()) {
+            const employeeData = employeeDoc.data();
+            // Convert employee data to User format
+            const userProfile: User = {
+              id: user.uid,
+              email: employeeData.email || user.email || "",
+              name:
+                employeeData.name ||
+                employeeData.firstName + " " + employeeData.lastName ||
+                user.displayName ||
+                user.email?.split("@")[0] ||
+                "Employee",
+              displayName:
+                employeeData.name ||
+                employeeData.firstName + " " + employeeData.lastName ||
+                user.displayName,
+              role: "employee",
+              createdAt: employeeData.createdAt || new Date(),
+              updatedAt: employeeData.updatedAt || new Date(),
+              // Include any additional employee fields
+              ...employeeData,
+            };
+            setUserProfile(userProfile);
+          } else {
+            // User not found in either collection - this shouldn't happen for valid employees
+            console.log(
+              "User document not found in users or employees collection for:",
+              user.email
+            );
+            const basicProfile: User = {
+              id: user.uid,
+              email: user.email || "",
+              name: user.displayName || user.email?.split("@")[0] || "Employee",
+              displayName: user.displayName || undefined,
+              role: "employee", // Default to employee role
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            setUserProfile(basicProfile);
+            // Don't automatically create in users collection - let admin/manager handle this
+          }
         }
       } else {
         setUserProfile(null);

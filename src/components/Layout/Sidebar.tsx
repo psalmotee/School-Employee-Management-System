@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { Link, useLocation } from "react-router-dom"
-import { LayoutDashboard, Users, Calendar, Building2, FileText, Settings, User } from "lucide-react"
+import { LayoutDashboard, Users, Calendar, Building2, FileText, User } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
 
 const Sidebar: React.FC = () => {
@@ -14,7 +14,7 @@ const Sidebar: React.FC = () => {
     { path: "/employees", icon: Users, label: "Employees", adminOnly: false },
     { path: "/leave-requests", icon: Calendar, label: "Leave Requests" },
     { path: "/departments", icon: Building2, label: "Departments"},
-    { path: "/admin", icon: Settings, label: "Administration", adminOnly: true },
+    // { path: "/admin", icon: Settings, label: "Administration", adminOnly: true },
     { path: "/reports", icon: FileText, label: "Reports", adminOnly: true },
     { path: "/profile", icon: User, label: "Profile" },
   ]

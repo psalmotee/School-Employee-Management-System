@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X, CalendarDays, Edit, Clock } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEmployees } from "../../hooks/useEmployees";
 import type { LeaveRequest } from "../../types";
 
 // This interface defines the shape of the form data
@@ -38,6 +40,9 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
   onClose,
   loading = false,
 }) => {
+  const { userProfile } = useAuth();
+  const { employees } = useEmployees();
+
   const {
     register,
     handleSubmit,
@@ -74,11 +79,70 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
 
   // Handle form submission and data formatting
   const handleFormSubmit = async (data: LeaveRequestFormData) => {
+    if (!userProfile) {
+      alert("User not authenticated. Please log in again.");
+      return;
+    }
+
     // Calculate the number of days
     const start = parseISO(data.startDate);
     const end = parseISO(data.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+
+    let employeeName = "";
+    let employeeId = "";
+
+    if (request) {
+      // For editing existing requests, use the existing data
+      employeeId = request.employeeId;
+      employeeName = request.employeeName;
+    } else {
+      // For new requests, get employee data from current user
+      employeeId = userProfile.id;
+
+      // Try multiple sources for employee name
+      // 1. Try userProfile.name first
+      if (userProfile.name && userProfile.name.trim()) {
+        employeeName = userProfile.name.trim();
+      }
+      // 2. Try userProfile.displayName
+      else if (userProfile.displayName && userProfile.displayName.trim()) {
+        employeeName = userProfile.displayName.trim();
+      }
+      // 3. Try to find matching employee record
+      else {
+        const matchingEmployee = employees.find(
+          (emp) => emp.id === userProfile.id || emp.email === userProfile.email
+        );
+        if (matchingEmployee && matchingEmployee.name) {
+          employeeName = matchingEmployee.name;
+        }
+        // 4. Fallback to email username
+        else if (userProfile.email) {
+          employeeName = userProfile.email.split("@")[0];
+        }
+        // 5. Last resort fallback
+        else {
+          employeeName = "Unknown Employee";
+        }
+      }
+    }
+
+    // Validate that we have required employee data
+    if (!employeeId || !employeeName || employeeName === "Unknown Employee") {
+      alert(
+        "Unable to determine employee information. Please ensure your profile is complete and try again."
+      );
+      console.error("Employee data validation failed:", {
+        employeeId,
+        employeeName,
+        userProfile,
+      });
+      return;
+    }
+
+    console.log("Submitting with employee data:", { employeeId, employeeName });
 
     // Construct the data object to be submitted
     const dataToSubmit = {
@@ -87,18 +151,23 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
       endDate: end,
       days: diffDays,
       status: request ? request.status : "pending",
-      employeeId: request?.employeeId || "", // We'll get this from the auth context in the parent
-      employeeName: request?.employeeName || "", // We'll get this from the auth context in the parent
+      employeeId,
+      employeeName,
     };
 
-    await onSubmit(dataToSubmit);
+    try {
+      await onSubmit(dataToSubmit);
+    } catch (error) {
+      console.error("Form submission error:", error);
+      alert("Failed to submit leave request. Please try again.");
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-base-100 rounded-lg p-6 max-w-2xl w-full relative shadow-xl">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full relative shadow-xl">
         <button
-          className="btn btn-sm btn-circle absolute top-4 right-4"
+          className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
           onClick={onClose}
           aria-label="Close"
         >
@@ -118,12 +187,12 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Leave Type</span>
+              <label className="block text-sm font-medium mb-2">
+                Leave Type
               </label>
               <select
-                className={`select select-bordered w-full ${
-                  errors.leaveType ? "select-error" : ""
+                className={`w-full p-2 border rounded ${
+                  errors.leaveType ? "border-red-500" : "border-gray-300"
                 }`}
                 {...register("leaveType", {
                   required: "Leave type is required",
@@ -138,40 +207,38 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 <option value="emergency">Emergency</option>
               </select>
               {errors.leaveType && (
-                <p className="text-error text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.leaveType.message}
                 </p>
               )}
             </div>
 
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">Start Date</span>
+              <label className="block text-sm font-medium mb-2">
+                Start Date
               </label>
               <input
                 type="date"
-                className={`input input-bordered w-full ${
-                  errors.startDate ? "input-error" : ""
+                className={`w-full p-2 border rounded ${
+                  errors.startDate ? "border-red-500" : "border-gray-300"
                 }`}
                 {...register("startDate", {
                   required: "Start date is required",
                 })}
               />
               {errors.startDate && (
-                <p className="text-error text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.startDate.message}
                 </p>
               )}
             </div>
 
             <div className="form-control">
-              <label className="label">
-                <span className="label-text">End Date</span>
-              </label>
+              <label className="block text-sm font-medium mb-2">End Date</label>
               <input
                 type="date"
-                className={`input input-bordered w-full ${
-                  errors.endDate ? "input-error" : ""
+                className={`w-full p-2 border rounded ${
+                  errors.endDate ? "border-red-500" : "border-gray-300"
                 }`}
                 {...register("endDate", {
                   required: "End date is required",
@@ -182,7 +249,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 })}
               />
               {errors.endDate && (
-                <p className="text-error text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.endDate.message}
                 </p>
               )}
@@ -190,16 +257,14 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
 
             {startDate && endDate && (
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Duration (Days)</span>
+                <label className="block text-sm font-medium mb-2">
+                  Duration (Days)
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-base-300">
-                    <Clock size={20} />
-                  </span>
+                <div className="flex items-center">
+                  <Clock size={20} className="mr-2 text-gray-400" />
                   <input
                     type="text"
-                    className="input input-bordered w-full cursor-not-allowed"
+                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 cursor-not-allowed"
                     value={
                       Math.ceil(
                         (parseISO(endDate).getTime() -
@@ -214,31 +279,35 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
             )}
 
             <div className="form-control md:col-span-2">
-              <label className="label">
-                <span className="label-text">Reason</span>
-              </label>
+              <label className="block text-sm font-medium mb-2">Reason</label>
               <textarea
-                className={`textarea textarea-bordered h-24 ${
-                  errors.reason ? "textarea-error" : ""
+                className={`w-full p-2 border rounded h-24 ${
+                  errors.reason ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Briefly describe the reason for the leave"
                 {...register("reason", { required: "Reason is required" })}
               />
               {errors.reason && (
-                <p className="text-error text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.reason.message}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 pt-4 border-t border-base-200 mt-6">
-            <button type="button" onClick={onClose} className="btn btn-outline">
+          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+            >
               Cancel
             </button>
             <button
               type="submit"
-              className={`btn btn-primary ${loading ? "loading" : ""}`}
+              className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               disabled={loading}
             >
               {loading

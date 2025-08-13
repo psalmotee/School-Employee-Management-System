@@ -22,24 +22,41 @@ export const useLeaveRequests = () => {
   const { userProfile } = useAuth();
 
   useEffect(() => {
-    // We must wait for the user profile to be ready before fetching data
+    const timeoutId = setTimeout(() => {
+      if (loading && !userProfile) {
+        console.error("User profile not loaded after timeout");
+        setError(
+          "Unable to load user profile. Please refresh the page or contact support."
+        );
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
+    // Only proceed if userProfile is available and authentication is ready
     if (!userProfile) {
-      setLoading(false);
+      clearTimeout(timeoutId);
       return;
     }
 
+    clearTimeout(timeoutId);
+
     let q;
-    // Admins and managers can see all requests, while employees can only see their own
     if (userProfile.role === "employee") {
+      // Employees can only see their own requests.
+      // Removed orderBy to avoid requiring a composite index.
       q = query(
         collection(db, "leaveRequests"),
-        // This query now only filters by employeeId
         where("employeeId", "==", userProfile.id)
       );
     } else {
+      // Managers and admins can see all requests.
+      // This query does not require a composite index, so orderBy is fine.
+      // We will remove it here for consistency and sort in-memory to prevent a potential error,
+      // as the collection query without a where clause might still need an index if there's no single-field index.
       q = query(collection(db, "leaveRequests"));
     }
 
+    // Set up the real-time listener
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -52,37 +69,62 @@ export const useLeaveRequests = () => {
           updatedAt: doc.data().updatedAt?.toDate() || new Date(),
         })) as LeaveRequest[];
 
-        // Sort the data client-side after fetching
-        const sortedRequestList = requestList.sort(
+        // Sort the data by creation date in memory to replace the removed Firestore orderBy clause
+        requestList.sort(
           (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
         );
 
-        setLeaveRequests(sortedRequestList);
+        setLeaveRequests(requestList);
         setLoading(false);
+        setError(null);
       },
-      (error) => {
-        console.error("Error fetching leave requests:", error);
+      (err) => {
+        console.error("Error fetching leave requests:", err);
         setError("Failed to fetch leave requests.");
-        setLoading(false);
+        setLoading(false); // Make sure to set loading to false on error
       }
     );
 
-    // Clean up the subscription on unmount
-    return () => unsubscribe();
-  }, [userProfile]);
+    // Clean up the listener on component unmount
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [userProfile, loading]);
 
   const createLeaveRequest = async (
-    leaveRequestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
+    requestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
   ) => {
     try {
       setError(null);
-      const dataToSave = {
-        ...leaveRequestData,
+
+      // Added validation to prevent undefined employeeName
+      if (!requestData.employeeId) {
+        throw new Error("Employee ID is required");
+      }
+
+      if (!requestData.employeeName) {
+        throw new Error("Employee name is required");
+      }
+
+      // Validate that all required fields are not undefined
+      const validatedData = {
+        ...requestData,
+        employeeId: requestData.employeeId,
+        employeeName: requestData.employeeName,
+        leaveType: requestData.leaveType || "sick",
+        startDate: requestData.startDate,
+        endDate: requestData.endDate,
+        days: requestData.days || 0,
+        reason: requestData.reason || "",
+        status: requestData.status || "pending",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      const docRef = await addDoc(collection(db, "leaveRequests"), dataToSave);
-      return docRef.id;
+
+      console.log("Creating leave request with data:", validatedData);
+
+      await addDoc(collection(db, "leaveRequests"), validatedData);
     } catch (error: any) {
       console.error("Error creating leave request:", error);
       setError(error.message || "Failed to create leave request");
@@ -92,12 +134,12 @@ export const useLeaveRequests = () => {
 
   const updateLeaveRequest = async (
     id: string,
-    leaveRequestData: Partial<LeaveRequest>
+    requestData: Partial<LeaveRequest>
   ) => {
     try {
       setError(null);
       await updateDoc(doc(db, "leaveRequests", id), {
-        ...leaveRequestData,
+        ...requestData,
         updatedAt: new Date(),
       });
     } catch (error: any) {
@@ -139,6 +181,14 @@ export const useLeaveRequests = () => {
     });
   };
 
+  const cancelLeaveRequest = async (id: string, cancelledBy: string) => {
+    await updateLeaveRequest(id, {
+      status: "cancelled",
+      cancelledBy,
+      cancelledAt: new Date(),
+    });
+  };
+
   const getPendingRequests = () => {
     return leaveRequests.filter((req) => req.status === "pending");
   };
@@ -156,6 +206,7 @@ export const useLeaveRequests = () => {
     deleteLeaveRequest,
     approveLeaveRequest,
     rejectLeaveRequest,
+    cancelLeaveRequest,
     getPendingRequests,
     getRequestsByStatus,
   };
