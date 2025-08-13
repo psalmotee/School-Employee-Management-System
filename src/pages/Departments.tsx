@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Building2 } from "lucide-react";
 import { useDepartments } from "../hooks/useDepartments";
 import { useAuth } from "../contexts/AuthContext";
-import DepartmentForm from "../components/Departments/DepartmentForm";
+import DepartmentForm from "../components/Department/DepartmentForm";
 import type { Department } from "../types";
 
 const Departments: React.FC = () => {

@@ -9,7 +9,6 @@ import {
   doc,
   query,
   where,
-  orderBy,
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -23,19 +22,22 @@ export const useLeaveRequests = () => {
   const { userProfile } = useAuth();
 
   useEffect(() => {
-    if (!userProfile) return;
+    // We must wait for the user profile to be ready before fetching data
+    if (!userProfile) {
+      setLoading(false);
+      return;
+    }
 
     let q;
+    // Admins and managers can see all requests, while employees can only see their own
     if (userProfile.role === "employee") {
-      // Employees can only see their own requests
       q = query(
         collection(db, "leaveRequests"),
-        where("employeeId", "==", userProfile.id),
-        orderBy("createdAt", "desc")
+        // This query now only filters by employeeId
+        where("employeeId", "==", userProfile.id)
       );
     } else {
-      // Managers and admins can see all requests
-      q = query(collection(db, "leaveRequests"), orderBy("createdAt", "desc"));
+      q = query(collection(db, "leaveRequests"));
     }
 
     const unsubscribe = onSnapshot(
@@ -48,33 +50,38 @@ export const useLeaveRequests = () => {
           endDate: doc.data().endDate?.toDate() || new Date(),
           createdAt: doc.data().createdAt?.toDate() || new Date(),
           updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-          approvedAt: doc.data().approvedAt?.toDate(),
         })) as LeaveRequest[];
 
-        setLeaveRequests(requestList);
+        // Sort the data client-side after fetching
+        const sortedRequestList = requestList.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+        );
+
+        setLeaveRequests(sortedRequestList);
         setLoading(false);
       },
       (error) => {
         console.error("Error fetching leave requests:", error);
-        setError("Failed to fetch leave requests");
+        setError("Failed to fetch leave requests.");
         setLoading(false);
       }
     );
 
+    // Clean up the subscription on unmount
     return () => unsubscribe();
   }, [userProfile]);
 
   const createLeaveRequest = async (
-    requestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
+    leaveRequestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
   ) => {
     try {
       setError(null);
-      const docRef = await addDoc(collection(db, "leaveRequests"), {
-        ...requestData,
-        status: "pending",
+      const dataToSave = {
+        ...leaveRequestData,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
+      const docRef = await addDoc(collection(db, "leaveRequests"), dataToSave);
       return docRef.id;
     } catch (error: any) {
       console.error("Error creating leave request:", error);
@@ -85,15 +92,13 @@ export const useLeaveRequests = () => {
 
   const updateLeaveRequest = async (
     id: string,
-    requestData: Partial<LeaveRequest>
+    leaveRequestData: Partial<LeaveRequest>
   ) => {
     try {
       setError(null);
       await updateDoc(doc(db, "leaveRequests", id), {
-        ...requestData,
+        ...leaveRequestData,
         updatedAt: new Date(),
-        ...(requestData.status &&
-          requestData.status !== "pending" && { approvedAt: new Date() }),
       });
     } catch (error: any) {
       console.error("Error updating leave request:", error);

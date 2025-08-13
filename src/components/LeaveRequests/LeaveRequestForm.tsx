@@ -1,320 +1,257 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
-import type { Employee, UserRole } from "../../types";
-import { useDepartments } from "../../hooks/useDepartments";
-import { Save, X } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { X, CalendarDays, Edit, Clock } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import type { LeaveRequest } from "../../types";
 
-interface EmployeeFormProps {
-  employee?: Employee | null;
-  onSubmit: (
-    employeeData: Omit<Employee, "id" | "createdAt" | "updatedAt" | "userId">,
-    password?: string
-  ) => Promise<void>;
-  onClose: () => void;
-  loading: boolean;
-  error: string | null;
+// This interface defines the shape of the form data
+interface LeaveRequestFormData {
+  leaveType:
+    | "sick"
+    | "vacation"
+    | "personal"
+    | "maternity"
+    | "paternity"
+    | "emergency";
+  startDate: string;
+  endDate: string;
+  reason: string;
+  days: number;
 }
 
-const EmployeeForm: React.FC<EmployeeFormProps> = ({
-  employee,
+// Props for the LeaveRequestForm component
+interface LeaveRequestFormProps {
+  request?: LeaveRequest;
+  onSubmit: (
+    data: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
+  ) => Promise<void>;
+  onClose: () => void;
+  loading?: boolean;
+}
+
+const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
+  request,
   onSubmit,
   onClose,
-  loading,
-  error,
+  loading = false,
 }) => {
   const {
-    departments,
-    loading: departmentsLoading,
-    error: departmentsError,
-  } = useDepartments();
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<LeaveRequestFormData>({
+    defaultValues: request
+      ? {
+          ...request,
+          startDate: format(request.startDate, "yyyy-MM-dd"),
+          endDate: format(request.endDate, "yyyy-MM-dd"),
+          // The `days` field is a calculated value, so we'll re-calculate it
+          days: 0,
+        }
+      : undefined,
+  });
 
-  const [name, setName] = useState(employee?.name || "");
-  const [email, setEmail] = useState(employee?.email || "");
-  const [phone, setPhone] = useState(employee?.phone || "");
-  const [address, setAddress] = useState(employee?.address || "");
-  const [dateOfBirth, setDateOfBirth] = useState(
-    employee?.dateOfBirth?.toISOString().split("T")[0] || ""
-  );
-  const [hireDate, setHireDate] = useState(
-    employee?.hireDate?.toISOString().split("T")[0] || ""
-  );
-  const [jobTitle, setJobTitle] = useState(employee?.jobTitle || "");
-  const [departmentId, setDepartmentId] = useState(
-    employee?.departmentId || ""
-  );
-  const [salary, setSalary] = useState(employee?.salary || 0);
-  const [status, setStatus] = useState(employee?.status || "active");
-  const [role, setRole] = useState<UserRole>(employee?.role || "employee");
-  const [password, setPassword] = useState(""); // New password state
+  const startDate = watch("startDate");
+  const endDate = watch("endDate");
 
+  // A useEffect hook to handle form reset when a new request is passed in for editing
   useEffect(() => {
-    if (employee) {
-      setName(employee.name);
-      setEmail(employee.email);
-      setPhone(employee.phone);
-      setAddress(employee.address);
-      setDateOfBirth(employee.dateOfBirth?.toISOString().split("T")[0] || "");
-      setHireDate(employee.hireDate?.toISOString().split("T")[0] || "");
-      setJobTitle(employee.jobTitle);
-      setDepartmentId(employee.departmentId);
-      setSalary(employee.salary);
-      setStatus(employee.status);
-      setRole(employee.role);
-      setPassword(""); // Clear password field when editing
+    if (request) {
+      reset({
+        ...request,
+        startDate: format(request.startDate, "yyyy-MM-dd"),
+        endDate: format(request.endDate, "yyyy-MM-dd"),
+      });
     } else {
-      // Reset form for new employee
-      setName("");
-      setEmail("");
-      setPhone("");
-      setAddress("");
-      setDateOfBirth("");
-      setHireDate("");
-      setJobTitle("");
-      setDepartmentId("");
-      setSalary(0);
-      setStatus("active");
-      setRole("employee");
-      setPassword("");
+      reset();
     }
-  }, [employee]);
+  }, [request, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle form submission and data formatting
+  const handleFormSubmit = async (data: LeaveRequestFormData) => {
+    // Calculate the number of days
+    const start = parseISO(data.startDate);
+    const end = parseISO(data.endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
 
-    const selectedDepartment = departments.find(
-      (dept) => dept.id === departmentId
-    );
-    if (!selectedDepartment) {
-      alert("Please select a valid department.");
-      return;
-    }
-
-    if (!employee && !password) {
-      // Password is required for new employees
-      alert("Password is required for new employee accounts.");
-      return;
-    }
-
-    const employeeData: Omit<
-      Employee,
-      "id" | "createdAt" | "updatedAt" | "userId"
-    > = {
-      name,
-      email,
-      phone,
-      address,
-      dateOfBirth: new Date(dateOfBirth),
-      hireDate: new Date(hireDate),
-      jobTitle,
-      department: selectedDepartment.name, // Denormalize department name
-      departmentId,
-      salary: Number(salary),
-      status: status as "active" | "on-leave" | "terminated" | "inactive",
-      role: role as UserRole,
+    // Construct the data object to be submitted
+    const dataToSubmit = {
+      ...data,
+      startDate: start,
+      endDate: end,
+      days: diffDays,
+      status: request ? request.status : "pending",
+      employeeId: request?.employeeId || "", // We'll get this from the auth context in the parent
+      employeeName: request?.employeeName || "", // We'll get this from the auth context in the parent
     };
 
-    await onSubmit(employeeData, employee ? undefined : password); // Pass password only for new employees
+    await onSubmit(dataToSubmit);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="py-4 space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Full Name</span>
-          </label>
-          <input
-            type="text"
-            placeholder="John Doe"
-            className="input input-bordered w-full"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Email</span>
-          </label>
-          <input
-            type="email"
-            placeholder="john.doe@example.com"
-            className="input input-bordered w-full"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">
-              Password {employee ? "(Leave blank to keep current)" : ""}
-            </span>
-          </label>
-          <input
-            type="password"
-            placeholder={employee ? "********" : "Enter password"}
-            className="input input-bordered w-full"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required={!employee} // Required only for new employees
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Phone</span>
-          </label>
-          <input
-            type="tel"
-            placeholder="123-456-7890"
-            className="input input-bordered w-full"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Address</span>
-          </label>
-          <input
-            type="text"
-            placeholder="123 Main St, Anytown"
-            className="input input-bordered w-full"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Date of Birth</span>
-          </label>
-          <input
-            type="date"
-            className="input input-bordered w-full"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Hire Date</span>
-          </label>
-          <input
-            type="date"
-            className="input input-bordered w-full"
-            value={hireDate}
-            onChange={(e) => setHireDate(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Job Title</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Software Engineer"
-            className="input input-bordered w-full"
-            value={jobTitle}
-            onChange={(e) => setJobTitle(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Department</span>
-          </label>
-          {departmentsLoading ? (
-            <span className="loading loading-spinner"></span>
-          ) : departmentsError ? (
-            <p className="text-error text-sm">{departmentsError}</p>
-          ) : (
-            <select
-              className="select select-bordered w-full"
-              value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              required
-            >
-              <option value="" disabled>
-                Select Department
-              </option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Salary</span>
-          </label>
-          <input
-            type="number"
-            placeholder="50000"
-            className="input input-bordered w-full"
-            value={salary}
-            onChange={(e) => setSalary(Number(e.target.value))}
-            required
-          />
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Status</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="active">Active</option>
-            <option value="on-leave">On Leave</option>
-            <option value="terminated">Terminated</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Role</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={role}
-            onChange={(e) => setRole(e.target.value as UserRole)}
-          >
-            <option value="employee">Employee</option>
-            <option value="manager">Manager</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-      </div>
-
-      {error && (
-        <div className="alert alert-error text-sm">
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="modal-action">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-base-100 rounded-lg p-6 max-w-2xl w-full relative shadow-xl">
         <button
-          type="button"
-          className="btn btn-ghost"
+          className="btn btn-sm btn-circle absolute top-4 right-4"
           onClick={onClose}
-          disabled={loading}
+          aria-label="Close"
         >
-          <X className="h-5 w-5" /> Cancel
+          <X size={20} />
         </button>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          <Save className="h-5 w-5" />{" "}
-          {employee ? "Update Employee" : "Add Employee"}
-        </button>
+        <h3 className="font-bold text-2xl mb-4 flex items-center">
+          {request ? (
+            <>
+              <Edit size={24} className="mr-2" /> Edit Leave Request
+            </>
+          ) : (
+            <>
+              <CalendarDays size={24} className="mr-2" /> Request Leave
+            </>
+          )}
+        </h3>
+        <form onSubmit={handleSubmit(handleFormSubmit)}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Leave Type</span>
+              </label>
+              <select
+                className={`select select-bordered w-full ${
+                  errors.leaveType ? "select-error" : ""
+                }`}
+                {...register("leaveType", {
+                  required: "Leave type is required",
+                })}
+              >
+                <option value="">Select leave type</option>
+                <option value="sick">Sick</option>
+                <option value="vacation">Vacation</option>
+                <option value="personal">Personal</option>
+                <option value="maternity">Maternity</option>
+                <option value="paternity">Paternity</option>
+                <option value="emergency">Emergency</option>
+              </select>
+              {errors.leaveType && (
+                <p className="text-error text-sm mt-1">
+                  {errors.leaveType.message}
+                </p>
+              )}
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Start Date</span>
+              </label>
+              <input
+                type="date"
+                className={`input input-bordered w-full ${
+                  errors.startDate ? "input-error" : ""
+                }`}
+                {...register("startDate", {
+                  required: "Start date is required",
+                })}
+              />
+              {errors.startDate && (
+                <p className="text-error text-sm mt-1">
+                  {errors.startDate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">End Date</span>
+              </label>
+              <input
+                type="date"
+                className={`input input-bordered w-full ${
+                  errors.endDate ? "input-error" : ""
+                }`}
+                {...register("endDate", {
+                  required: "End date is required",
+                  validate: (value) =>
+                    !startDate ||
+                    value >= startDate ||
+                    "End date must be after start date",
+                })}
+              />
+              {errors.endDate && (
+                <p className="text-error text-sm mt-1">
+                  {errors.endDate.message}
+                </p>
+              )}
+            </div>
+
+            {startDate && endDate && (
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Duration (Days)</span>
+                </label>
+                <div className="input-group">
+                  <span className="input-group-text bg-base-300">
+                    <Clock size={20} />
+                  </span>
+                  <input
+                    type="text"
+                    className="input input-bordered w-full cursor-not-allowed"
+                    value={
+                      Math.ceil(
+                        (parseISO(endDate).getTime() -
+                          parseISO(startDate).getTime()) /
+                          (1000 * 60 * 60 * 24)
+                      ) + 1
+                    }
+                    disabled
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="form-control md:col-span-2">
+              <label className="label">
+                <span className="label-text">Reason</span>
+              </label>
+              <textarea
+                className={`textarea textarea-bordered h-24 ${
+                  errors.reason ? "textarea-error" : ""
+                }`}
+                placeholder="Briefly describe the reason for the leave"
+                {...register("reason", { required: "Reason is required" })}
+              />
+              {errors.reason && (
+                <p className="text-error text-sm mt-1">
+                  {errors.reason.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-4 pt-4 border-t border-base-200 mt-6">
+            <button type="button" onClick={onClose} className="btn btn-outline">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`btn btn-primary ${loading ? "loading" : ""}`}
+              disabled={loading}
+            >
+              {loading
+                ? "Submitting..."
+                : request
+                ? "Update Request"
+                : "Submit Request"}
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   );
 };
 
-export default EmployeeForm;
+export default LeaveRequestForm;

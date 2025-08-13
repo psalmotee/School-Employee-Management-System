@@ -14,12 +14,13 @@ import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
-import { useAuth } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
-  const { loading, userProfile } = useAuth();
+  const { loading, userProfile, isAuthReady } = useAuth();
 
-  if (loading) {
+  // Show a full-screen loading spinner while Firebase auth is initializing
+  if (loading || !isAuthReady) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-base-200">
         <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -50,6 +51,7 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
+        {/* Admin route is only visible if the user role is 'admin' */}
         {userProfile?.role === "admin" && (
           <Route path="admin" element={<Admin />} />
         )}
@@ -59,4 +61,12 @@ function App() {
   );
 }
 
-export default App;
+// Export the App component wrapped in the AuthProvider
+// This is the crucial step to ensure the useAuth hook works throughout the app.
+export default function AppWithProvider() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}

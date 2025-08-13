@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Plus,
@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useLeaveRequests } from "../hooks/useLeaveRequests";
+import { useEmployees } from "../hooks/useEmployees";
 import { useAuth } from "../contexts/AuthContext";
 import LeaveRequestForm from "../components/LeaveRequests/LeaveRequestForm";
+import LeaveRequestDetails from "../components/LeaveRequests/LeaveRequestDetails";
 import type { LeaveRequest } from "../types";
 
 const LeaveRequests: React.FC = () => {
@@ -27,17 +29,20 @@ const LeaveRequests: React.FC = () => {
   const [editingRequest, setEditingRequest] = useState<LeaveRequest | null>(
     null
   );
+  const [viewingRequest, setViewingRequest] = useState<LeaveRequest | null>(
+    null
+  );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null
   );
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [formSubmitting, setFormSubmitting] = useState(false);
 
-  // Get userProfile and auth loading state from AuthContext
-  const { userProfile, loading: authLoading } = useAuth();
+  const { userProfile } = useAuth();
   const {
     leaveRequests,
-    loading: leaveRequestsLoading, // Renamed to avoid conflict with authLoading
+    loading,
     error,
     createLeaveRequest,
     updateLeaveRequest,
@@ -46,133 +51,104 @@ const LeaveRequests: React.FC = () => {
     rejectLeaveRequest,
   } = useLeaveRequests();
 
-  const leaveTypes = [
-    "sick",
-    "vacation",
-    "personal",
-    "maternity",
-    "paternity",
-    "emergency",
-  ];
+  const { employees } = useEmployees();
 
-  const filteredRequests = leaveRequests.filter((request) => {
-    const matchesSearch =
-      request.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !selectedStatus || request.status === selectedStatus;
-    const matchesType = !selectedType || request.leaveType === selectedType;
-
-    return matchesSearch && matchesStatus && matchesType;
-  });
-
-  const canManageRequests =
+  // Determine if the current user has permission to manage leave requests
+  const canManageLeave =
     userProfile?.role === "admin" || userProfile?.role === "manager";
-  const canCreateRequest = userProfile?.role === "employee";
 
-  const handleCreateRequest = async (
-    requestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
-  ) => {
+  const getEmployeeName = (employeeId: string) => {
+    const employee = employees.find((emp) => emp.id === employeeId);
+    return employee ? employee.name : "Unknown Employee";
+  };
+
+  const filteredRequests = useMemo(() => {
+    return leaveRequests
+      .filter((request) => {
+        const matchesSearch =
+          getEmployeeName(request.employeeId)
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          request.leaveType.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus =
+          !selectedStatus || request.status === selectedStatus;
+        const matchesType = !selectedType || request.leaveType === selectedType;
+        return matchesSearch && matchesStatus && matchesType;
+      })
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }, [leaveRequests, searchTerm, selectedStatus, selectedType, employees]);
+
+  const handleCreateRequest = async (data: any) => {
+    setFormSubmitting(true);
     try {
-      await createLeaveRequest(requestData);
+      if (!userProfile) throw new Error("User not authenticated.");
+      await createLeaveRequest({
+        ...data,
+        employeeId: userProfile.id,
+        employeeName: userProfile.name,
+      });
       setShowForm(false);
-    } catch (error) {
-      console.error("Failed to create leave request:", error);
+    } catch (e) {
+      console.error("Failed to create leave request:", e);
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
-  const handleUpdateRequest = async (
-    requestData: Omit<LeaveRequest, "id" | "createdAt" | "updatedAt">
-  ) => {
+  const handleUpdate = async (data: any) => {
     if (!editingRequest) return;
+    setFormSubmitting(true);
     try {
-      await updateLeaveRequest(editingRequest.id, requestData);
-      setEditingRequest(null);
+      await updateLeaveRequest(editingRequest.id, data);
       setShowForm(false);
-    } catch (error) {
-      console.error("Failed to update leave request:", error);
+      setEditingRequest(null);
+    } catch (e) {
+      console.error("Failed to update leave request:", e);
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
-  const handleDeleteRequest = async (id: string) => {
+  const handleDelete = async (requestId: string | null) => {
+    if (!requestId) return;
     try {
-      await deleteLeaveRequest(id);
+      await deleteLeaveRequest(requestId);
       setShowDeleteConfirm(null);
-    } catch (error) {
-      console.error("Failed to delete leave request:", error);
+    } catch (e) {
+      console.error("Failed to delete leave request:", e);
     }
   };
 
-  const handleApprove = async (id: string) => {
-    if (!userProfile) return;
+  const handleApprove = async (requestId: string | null) => {
+    if (!requestId || !userProfile) return;
     try {
-      await approveLeaveRequest(id, userProfile.name);
-    } catch (error) {
-      console.error("Failed to approve leave request:", error);
+      await approveLeaveRequest(requestId, userProfile.name);
+    } catch (e) {
+      console.error("Failed to approve request:", e);
+    } finally {
+      setShowRejectModal(null);
     }
   };
 
-  const handleReject = async (id: string) => {
-    if (!userProfile) return;
+  const handleReject = async (requestId: string | null) => {
+    if (!requestId || !userProfile) return;
     try {
-      await rejectLeaveRequest(id, userProfile.name, rejectionReason);
+      await rejectLeaveRequest(
+        requestId,
+        userProfile.name,
+        rejectionReason || "No reason provided."
+      );
+    } catch (e) {
+      console.error("Failed to reject request:", e);
+    } finally {
       setShowRejectModal(null);
       setRejectionReason("");
-    } catch (error) {
-      console.error("Failed to reject leave request:", error);
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle className="h-5 w-5 text-success" />;
-      case "rejected":
-        return <XCircle className="h-5 w-5 text-error" />;
-      default:
-        return <Clock className="h-5 w-5 text-warning" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "badge";
-    switch (status) {
-      case "approved":
-        return `${baseClasses} badge-success`;
-      case "rejected":
-        return `${baseClasses} badge-error`;
-      default:
-        return `${baseClasses} badge-warning`;
-    }
-  };
-
-  const getLeaveTypeBadge = (type: string) => {
-    const colors = {
-      sick: "badge-error",
-      vacation: "badge-primary",
-      personal: "badge-secondary",
-      maternity: "badge-accent",
-      paternity: "badge-accent",
-      emergency: "badge-warning",
-    };
-    return `badge ${colors[type as keyof typeof colors] || "badge-neutral"}`;
-  };
-
-  const canEditRequest = (request: LeaveRequest) => {
+  if (loading) {
     return (
-      request.employeeId === userProfile?.id && request.status === "pending"
-    );
-  };
-
-  const canDeleteRequest = (request: LeaveRequest) => {
-    return (
-      request.employeeId === userProfile?.id && request.status === "pending"
-    );
-  };
-
-  // Combine loading states: show loading if auth is still loading OR leave requests are loading
-  if (authLoading || leaveRequestsLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-screen">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
@@ -181,262 +157,198 @@ const LeaveRequests: React.FC = () => {
   if (error) {
     return (
       <div className="alert alert-error">
-        <span>{error}</span>
+        <p>Error: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Calendar className="h-8 w-8 text-primary" />
-            Leave Requests
-          </h1>
-          <p className="text-base-content/60">
-            Manage employee leave applications
-          </p>
-        </div>
-        {canCreateRequest && (
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-            <Plus className="h-5 w-5" />
-            New Request
-          </button>
-        )}
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-base-content">
+          <Calendar className="inline-block mr-2" size={32} /> Leave Requests
+        </h1>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingRequest(null);
+            setShowForm(true);
+          }}
+        >
+          <Plus size={20} /> New Request
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className="card bg-base-100 shadow-lg">
-        <div className="card-body">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="form-control flex-1">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by employee name or ID..."
-                  className="input input-bordered w-full pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-              </div>
-            </div>
-
-            <div className="form-control">
-              <select
-                className="select select-bordered"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-
-            <div className="form-control">
-              <select
-                className="select select-bordered"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-              >
-                <option value="">All Types</option>
-                {leaveTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Leave Requests Table */}
-      <div className="card bg-base-100 shadow-lg">
-        <div className="card-body">
-          <div className="overflow-x-auto">
-            <table className="table table-zebra">
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Leave Type</th>
-                  <th>Duration</th>
-                  <th>Applied Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRequests.map((request) => (
-                  <tr key={request.id}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="avatar placeholder">
-                          <div className="bg-primary text-primary-content rounded-full w-10">
-                            <span className="text-sm">
-                              {request.employeeName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-bold">
-                            {request.employeeName}
-                          </div>
-                          <div className="text-sm opacity-50">
-                            {request.employeeId}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className={getLeaveTypeBadge(request.leaveType)}>
-                        {request.leaveType.charAt(0).toUpperCase() +
-                          request.leaveType.slice(1)}
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <div className="font-medium">
-                          {request.days} day{request.days > 1 ? "s" : ""}
-                        </div>
-                        <div className="text-sm opacity-50">
-                          {format(request.startDate, "MMM dd")} -{" "}
-                          {format(request.endDate, "MMM dd")}
-                        </div>
-                      </div>
-                    </td>
-                    <td>{format(request.createdAt, "MMM dd, yyyy")}</td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(request.status)}
-                        <div className={getStatusBadge(request.status)}>
-                          {request.status}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button className="btn btn-ghost btn-sm">
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        {canEditRequest(request) && (
-                          <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => {
-                              setEditingRequest(request);
-                              setShowForm(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                        )}
-                        {canDeleteRequest(request) && (
-                          <button
-                            className="btn btn-ghost btn-sm text-error"
-                            onClick={() => setShowDeleteConfirm(request.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                        {canManageRequests && request.status === "pending" && (
-                          <>
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => handleApprove(request.id)}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </button>
-                            <button
-                              className="btn btn-error btn-sm"
-                              onClick={() => setShowRejectModal(request.id)}
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Empty State */}
-      {filteredRequests.length === 0 && (
-        <div className="text-center py-12">
-          <Calendar className="h-16 w-16 text-base-content/20 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">
-            No leave requests found
-          </h3>
-          <p className="text-base-content/60 mb-4">
-            {searchTerm || selectedStatus || selectedType
-              ? "Try adjusting your search criteria"
-              : "No leave requests have been submitted yet"}
-          </p>
-          {canCreateRequest && (
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowForm(true)}
-            >
-              <Plus className="h-5 w-5" />
-              Submit Request
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Stats */}
-      <div className="stats shadow w-full">
+      {/* Stats Section */}
+      <div className="stats stats-vertical lg:stats-horizontal shadow bg-base-100 mb-6 w-full">
         <div className="stat">
           <div className="stat-title">Total Requests</div>
-          <div className="stat-value text-primary">{leaveRequests.length}</div>
+          <div className="stat-value">{leaveRequests.length}</div>
           <div className="stat-desc">All time</div>
         </div>
-
         <div className="stat">
-          <div className="stat-title">Pending</div>
+          <div className="stat-title">Pending Requests</div>
           <div className="stat-value text-warning">
             {leaveRequests.filter((r) => r.status === "pending").length}
           </div>
           <div className="stat-desc">Awaiting approval</div>
         </div>
-
         <div className="stat">
-          <div className="stat-title">Approved</div>
+          <div className="stat-title">Approved Requests</div>
           <div className="stat-value text-success">
             {leaveRequests.filter((r) => r.status === "approved").length}
           </div>
-          <div className="stat-desc">This month</div>
+          <div className="stat-desc">This year</div>
         </div>
+      </div>
 
-        <div className="stat">
-          <div className="stat-title">Rejected</div>
-          <div className="stat-value text-error">
-            {leaveRequests.filter((r) => r.status === "rejected").length}
-          </div>
-          <div className="stat-desc">This month</div>
+      {/* Filters and Search */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <div className="flex-1">
+          <label className="input input-bordered flex items-center gap-2">
+            <Search size={16} />
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search by employee or leave type"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </label>
         </div>
+        <div className="w-full sm:w-auto">
+          <select
+            className="select select-bordered w-full sm:w-48"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div className="w-full sm:w-auto">
+          <select
+            className="select select-bordered w-full sm:w-48"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="">All Types</option>
+            <option value="sick">Sick</option>
+            <option value="vacation">Vacation</option>
+            <option value="personal">Personal</option>
+            <option value="maternity">Maternity</option>
+            <option value="paternity">Paternity</option>
+            <option value="emergency">Emergency</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Leave Requests Table */}
+      <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Leave Type</th>
+              <th>Date Range</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th className="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRequests.map((request) => (
+              <tr key={request.id}>
+                <td>{getEmployeeName(request.employeeId)}</td>
+                <td>{request.leaveType}</td>
+                <td>
+                  {format(request.startDate, "PPP")} -{" "}
+                  {format(request.endDate, "PPP")}
+                </td>
+                <td>{request.days}</td>
+                <td>
+                  <span
+                    className={`badge ${
+                      request.status === "pending"
+                        ? "badge-warning"
+                        : request.status === "approved"
+                        ? "badge-success"
+                        : "badge-error"
+                    }`}
+                  >
+                    {request.status}
+                  </span>
+                </td>
+                <td className="text-right">
+                  <button
+                    className="btn btn-ghost btn-sm text-info"
+                    title="View Details"
+                    onClick={() => setViewingRequest(request)}
+                  >
+                    <Eye size={18} />
+                  </button>
+                  {/* Only show these buttons to admins and managers for pending requests */}
+                  {canManageLeave && request.status === "pending" && (
+                    <>
+                      <button
+                        className="btn btn-ghost btn-sm text-success"
+                        title="Approve"
+                        onClick={() => handleApprove(request.id)}
+                      >
+                        <CheckCircle size={18} />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm text-error"
+                        title="Reject"
+                        onClick={() => setShowRejectModal(request.id)}
+                      >
+                        <XCircle size={18} />
+                      </button>
+                    </>
+                  )}
+                  {/* Edit and Delete buttons for the request owner or admins/managers */}
+                  {(userProfile?.id === request.employeeId ||
+                    userProfile?.role === "admin" ||
+                    userProfile?.role === "manager") && (
+                    <>
+                      <button
+                        className="btn btn-ghost btn-sm text-warning"
+                        title="Edit"
+                        onClick={() => {
+                          setEditingRequest(request);
+                          setShowForm(true);
+                        }}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm text-error"
+                        title="Delete"
+                        onClick={() => setShowDeleteConfirm(request.id)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Leave Request Form Modal */}
       {showForm && (
         <LeaveRequestForm
-          leaveRequest={editingRequest || undefined}
-          onSubmit={editingRequest ? handleUpdateRequest : handleCreateRequest}
+          request={editingRequest || undefined}
+          onSubmit={editingRequest ? handleUpdate : handleCreateRequest}
           onClose={() => {
             setShowForm(false);
             setEditingRequest(null);
           }}
+          loading={formSubmitting}
         />
       )}
 
@@ -446,8 +358,7 @@ const LeaveRequests: React.FC = () => {
           <div className="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="font-bold text-lg mb-4">Confirm Delete</h3>
             <p className="mb-6">
-              Are you sure you want to delete this leave request? This action
-              cannot be undone.
+              Are you sure you want to delete this leave request?
             </p>
             <div className="flex justify-end gap-4">
               <button
@@ -458,7 +369,7 @@ const LeaveRequests: React.FC = () => {
               </button>
               <button
                 className="btn btn-error"
-                onClick={() => handleDeleteRequest(showDeleteConfirm)}
+                onClick={() => handleDelete(showDeleteConfirm)}
               >
                 Delete
               </button>
@@ -467,7 +378,7 @@ const LeaveRequests: React.FC = () => {
         </div>
       )}
 
-      {/* Reject Modal */}
+      {/* Reject Leave Request Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4">
@@ -500,6 +411,14 @@ const LeaveRequests: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Leave Request Details Modal */}
+      {viewingRequest && (
+        <LeaveRequestDetails
+          request={viewingRequest}
+          onClose={() => setViewingRequest(null)}
+        />
       )}
     </div>
   );
