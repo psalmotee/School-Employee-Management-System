@@ -14,6 +14,7 @@ export interface User {
   avatar?: string;
   createdAt: Date;
   updatedAt: Date | Timestamp;
+  displayName?: string;
 }
 
 export interface Employee {
@@ -27,7 +28,7 @@ export interface Employee {
   salary: number;
   hireDate: Date;
   // Added "on-leave" status for better leave management
-  status: "active" | "inactive" | "terminated" | "on-leave";
+  status: "active" | "inactive" | "terminated" | "on-leave" | EmployeeStatus;
   avatar?: string;
   address?: string;
   dateOfBirth?: Date;
@@ -39,7 +40,15 @@ export interface Employee {
   };
   createdAt: Date;
   updatedAt: Date | Timestamp;
+  displayName?: string;
+  defaultValues?: any;
 }
+
+type EmployeeStatus = "active" | "inactive" | "terminated" | "on-leave";
+
+// interface EmployeeFormData {
+//   status: EmployeeStatus;
+// }
 
 export interface LeaveRequest {
   id: string;
@@ -62,6 +71,9 @@ export interface LeaveRequest {
   rejectionReason?: string;
   createdAt: Date;
   updatedAt: Date | Timestamp;
+  defaultValues: "employeeId" | "name" | "email" | "phone" | "department" | "position" | "salary" | "hireDate" | "status";
+  displayName: "";
+
 }
 
 export interface Department {
@@ -73,4 +85,19 @@ export interface Department {
   createdAt: Date;
   updatedAt: Date | Timestamp;
   managerName?: string; // Optional field for manager's name
+  defaultValues:
+    | "employeeId"
+    | "name"
+    | "email"
+    | "phone"
+    | "department"
+    | "position"
+    | "salary"
+    | "hireDate"
+    | "status";
+  displayName: "";
+}
+
+export interface Input {
+  InputProps: string;
 }

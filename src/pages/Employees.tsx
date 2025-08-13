@@ -1,34 +1,36 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useMemo } from "react" // Added useMemo
+import type React from "react";
+import { useState, useMemo } from "react";
 import {
   Users,
   Plus,
   Search,
   Edit,
   Trash2,
-  Mail,
-  Phone,
-  MapPin,
   Eye,
-} from "lucide-react"
-import { useEmployees } from "../hooks/useEmployees"
-import { useAuth } from "../contexts/AuthContext"
-import EmployeeForm from "../components/Employees/EmployeeForm"
-import type { Employee } from "../types"
+  Building2,
+  Activity,
+} from "lucide-react";
+import { useEmployees } from "../hooks/useEmployees";
+import { useAuth } from "../contexts/AuthContext";
+import EmployeeForm from "../components/Employees/EmployeeForm";
+import type { Employee } from "../types";
+import Input from "../components/ui/Input";
+import Select from "../components/ui/Select";
+import Button from "../components/ui/Button";
 
 const Employees: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedDepartment, setSelectedDepartment] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState("")
-  const [showForm, setShowForm] = useState(false)
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null
-  )
+  );
 
-  const { userProfile } = useAuth()
+  const { userProfile } = useAuth();
   const {
     employees,
     loading,
@@ -36,71 +38,68 @@ const Employees: React.FC = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-  } = useEmployees()
+  } = useEmployees();
 
-  // Use useMemo to prevent re-computation on every render
   const departments = useMemo(() => {
-    const departmentSet = new Set(employees.map((e) => e.department))
-    return ["", ...Array.from(departmentSet)]
-  }, [employees])
+    const departmentSet = new Set(employees.map((e) => e.department));
+    return ["", ...Array.from(departmentSet)];
+  }, [employees]);
 
   const filteredEmployees = employees.filter((employee) => {
     const matchesSearch =
       employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+      employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment =
-      !selectedDepartment || employee.department === selectedDepartment
-    const matchesStatus =
-      !selectedStatus || employee.status === selectedStatus
+      !selectedDepartment || employee.department === selectedDepartment;
+    const matchesStatus = !selectedStatus || employee.status === selectedStatus;
 
-    return matchesSearch && matchesDepartment && matchesStatus
-  })
+    return matchesSearch && matchesDepartment && matchesStatus;
+  });
 
   const handleCreateEmployee = async (
     data: Omit<Employee, "id" | "createdAt" | "updatedAt">
   ) => {
     try {
-      await createEmployee(data)
-      setShowForm(false)
+      await createEmployee(data);
+      setShowForm(false);
     } catch (e) {
-      console.error("Failed to create employee:", e)
+      console.error("Failed to create employee:", e);
     }
-  }
+  };
 
   const handleUpdateEmployee = async (
     data: Omit<Employee, "id" | "createdAt" | "updatedAt">
   ) => {
-    if (!editingEmployee) return
+    if (!editingEmployee) return;
     try {
-      await updateEmployee(editingEmployee.id, data)
-      setShowForm(false)
-      setEditingEmployee(null)
+      await updateEmployee(editingEmployee.id, data);
+      setShowForm(false);
+      setEditingEmployee(null);
     } catch (e) {
-      console.error("Failed to update employee:", e)
+      console.error("Failed to update employee:", e);
     }
-  }
+  };
 
   const handleDeleteEmployee = async (employeeId: string | null) => {
-    if (!employeeId) return
+    if (!employeeId) return;
     try {
-      await deleteEmployee(employeeId)
-      setShowDeleteConfirm(null)
+      await deleteEmployee(employeeId);
+      setShowDeleteConfirm(null);
     } catch (e) {
-      console.error("Failed to delete employee:", e)
+      console.error("Failed to delete employee:", e);
     }
-  }
+  };
 
-  // Determine if the current user has permission to manage employees
   const canManageEmployees =
-    userProfile?.role === "admin" || userProfile?.role === "manager"
+    userProfile?.role === "admin" || userProfile?.role === "manager";
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -108,7 +107,7 @@ const Employees: React.FC = () => {
       <div className="alert alert-error">
         <p>Error: {error}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -117,17 +116,16 @@ const Employees: React.FC = () => {
         <h1 className="text-3xl font-bold text-base-content">
           <Users className="inline-block mr-2" size={32} /> Employees
         </h1>
-        {/* Only show the 'Add Employee' button for admins and managers */}
         {canManageEmployees && (
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             onClick={() => {
-              setEditingEmployee(null)
-              setShowForm(true)
+              setEditingEmployee(null);
+              setShowForm(true);
             }}
           >
             <Plus size={20} /> Add Employee
-          </button>
+          </Button>
         )}
       </div>
 
@@ -156,25 +154,21 @@ const Employees: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters and Search */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex-1">
-          <label className="input input-bordered flex items-center gap-2">
-            <Search size={16} />
-            <input
-              type="text"
-              className="grow"
-              placeholder="Search by name, email, or ID"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </label>
+          <Input
+            icon={Search}
+            placeholder="Search by name, email, or ID"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <div className="w-full sm:w-auto">
-          <select
-            className="select select-bordered w-full sm:w-48"
+          <Select
+            icon={Building2}
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
+            className="w-full sm:w-48"
           >
             <option value="">All Departments</option>
             {departments.map((department) => (
@@ -182,20 +176,21 @@ const Employees: React.FC = () => {
                 {department || "Unassigned"}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="w-full sm:w-auto">
-          <select
-            className="select select-bordered w-full sm:w-48"
+          <Select
+            icon={Activity}
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
+            className="w-full sm:w-48"
           >
             <option value="">All Statuses</option>
             <option value="active">Active</option>
             <option value="on-leave">On Leave</option>
             <option value="inactive">Inactive</option>
             <option value="terminated">Terminated</option>
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -207,8 +202,8 @@ const Employees: React.FC = () => {
               <th>Employee Name</th>
               <th>Department</th>
               <th>Position</th>
+              <th>Role</th>
               <th>Status</th>
-              {/* Only show the 'Actions' column for admins and managers */}
               {canManageEmployees && <th className="text-right">Actions</th>}
             </tr>
           </thead>
@@ -225,6 +220,19 @@ const Employees: React.FC = () => {
                 <td>
                   <span
                     className={`badge ${
+                      employee.role === "admin"
+                        ? "badge-error"
+                        : employee.role === "manager"
+                        ? "badge-warning"
+                        : "badge-info"
+                    }`}
+                  >
+                    {employee.role}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    className={`badge ${
                       employee.status === "active"
                         ? "badge-success"
                         : employee.status === "on-leave"
@@ -235,32 +243,37 @@ const Employees: React.FC = () => {
                     {employee.status}
                   </span>
                 </td>
-                {/* Actions column with conditional buttons */}
                 {canManageEmployees && (
                   <td className="text-right">
-                    <button
-                      className="btn btn-ghost btn-sm text-info"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-info"
                       title="View Details"
                     >
                       <Eye size={18} />
-                    </button>
-                    <button
-                      className="btn btn-ghost btn-sm text-warning"
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-warning"
                       title="Edit"
                       onClick={() => {
-                        setEditingEmployee(employee)
-                        setShowForm(true)
+                        setEditingEmployee(employee);
+                        setShowForm(true);
                       }}
                     >
                       <Edit size={18} />
-                    </button>
-                    <button
-                      className="btn btn-ghost btn-sm text-error"
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-error"
                       title="Delete"
                       onClick={() => setShowDeleteConfirm(employee.id)}
                     >
                       <Trash2 size={18} />
-                    </button>
+                    </Button>
                   </td>
                 )}
               </tr>
@@ -277,13 +290,12 @@ const Employees: React.FC = () => {
             editingEmployee ? handleUpdateEmployee : handleCreateEmployee
           }
           onClose={() => {
-            setShowForm(false)
-            setEditingEmployee(null)
+            setShowForm(false);
+            setEditingEmployee(null);
           }}
         />
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4">
@@ -293,24 +305,24 @@ const Employees: React.FC = () => {
               be undone.
             </p>
             <div className="flex justify-end gap-4">
-              <button
-                className="btn btn-outline"
+              <Button
+                variant="outline"
                 onClick={() => setShowDeleteConfirm(null)}
               >
                 Cancel
-              </button>
-              <button
-                className="btn btn-error"
+              </Button>
+              <Button
+                variant="error"
                 onClick={() => handleDeleteEmployee(showDeleteConfirm)}
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Employees
+export default Employees;

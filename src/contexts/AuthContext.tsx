@@ -20,7 +20,7 @@ interface AuthContextType {
   loading: boolean;
   isAuthReady: boolean;
 }
-
+ 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -64,11 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (user) {
         // First check users collection (for admin/manager)
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        let foundInUsers = false;
-
         if (userDoc.exists()) {
           setUserProfile(userDoc.data() as User);
-          foundInUsers = true;
         } else {
           // If not found in users, check employees collection
           const employeeDoc = await getDoc(doc(db, "employees", user.uid));

@@ -13,12 +13,15 @@ import {
   Calendar,
   DollarSign,
   MapPin,
-  Lock,
+  Users,
+  Shield,
 } from "lucide-react";
 import type { Employee } from "../../types";
 import { useDepartments } from "../../hooks/useDepartments";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Button from "../ui/Button";
 
-// EmployeeFormData interface with corrected fields for the form
 interface EmployeeFormData {
   employeeId: string;
   name: string;
@@ -26,16 +29,16 @@ interface EmployeeFormData {
   phone: string;
   department: string;
   position: string;
+  role: "employee" | "manager" | "admin";
   salary: number;
   hireDate: string;
-  status: "active" | "inactive" | "terminated";
+  status: "active" | "inactive" | "terminated" | "EmployeeStatus";
   address?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelationship?: string;
 }
 
-// Update onSubmit prop type to match the data sent from the form
 interface EmployeeFormProps {
   employee?: Employee;
   onSubmit: (
@@ -65,6 +68,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           phone: employee.phone,
           department: employee.department,
           position: employee.position,
+          role: employee.role || "employee",
           salary: employee.salary,
           hireDate: employee.hireDate?.toISOString().split("T")[0],
           status: employee.status,
@@ -79,7 +83,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   const { departments, loading: departmentsLoading } = useDepartments();
 
   useEffect(() => {
-    // Reset form when employee prop changes (e.g., for editing a different employee)
     if (employee) {
       reset({
         employeeId: employee.employeeId,
@@ -88,6 +91,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         phone: employee.phone,
         department: employee.department,
         position: employee.position,
+        role: employee.role || "employee",
         salary: employee.salary,
         hireDate: employee.hireDate?.toISOString().split("T")[0],
         status: employee.status,
@@ -117,23 +121,20 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           }
         : undefined;
 
-    // Ensure salary is a number before passing to onSubmit
     const formattedData = {
       ...rest,
       salary: Number(data.salary),
-      // hireDate is already a string
       emergencyContact,
     };
 
-    // The form no longer handles password, so we omit it from the submission data
     const employeeData = {
       ...formattedData,
-      role: employee?.role || "employee", // Default to 'employee' role for new employee
-      dateOfBirth: employee?.dateOfBirth, // Preserve date of birth if it exists
+      role: data.role,
+      dateOfBirth: employee?.dateOfBirth,
     };
 
     await onSubmit(
-      employeeData as Omit<Employee, "id" | "createdAt" | "updatedAt">
+      employeeData as Omit<Employee, "id" | "createdAt" | "updatedAt"> 
     );
   };
 
@@ -144,9 +145,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           <h2 className="text-2xl font-bold">
             {employee ? "Edit Employee" : "Create New Employee"}
           </h2>
-          <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
+          <Button variant="ghost" size="sm" shape="circle" onClick={onClose}>
             <X size={20} />
-          </button>
+          </Button>
         </div>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,93 +158,46 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                   <User className="mr-2" /> Personal Information
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Employee ID</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. EMP-001"
-                      className={`input input-bordered w-full ${
-                        errors.employeeId ? "input-error" : ""
-                      }`}
-                      {...register("employeeId", {
-                        required: "Employee ID is required",
-                      })}
-                    />
-                    {errors.employeeId && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.employeeId.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Full Name</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      className={`input input-bordered w-full ${
-                        errors.name ? "input-error" : ""
-                      }`}
-                      {...register("name", { required: "Name is required" })}
-                    />
-                    {errors.name && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Email</span>
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="johndoe@example.com"
-                      className={`input input-bordered w-full ${
-                        errors.email ? "input-error" : ""
-                      }`}
-                      {...register("email", { required: "Email is required" })}
-                    />
-                    {errors.email && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Phone</span>
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                      className={`input input-bordered w-full ${
-                        errors.phone ? "input-error" : ""
-                      }`}
-                      {...register("phone", {
-                        required: "Phone number is required",
-                      })}
-                    />
-                    {errors.phone && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.phone.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Address</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="123 Main St, Anytown, USA"
-                      className="input input-bordered w-full"
-                      {...register("address")}
-                    />
-                  </div>
+                  <Input
+                    label="Employee ID"
+                    icon={User}
+                    placeholder="e.g. EMP-001"
+                    error={errors.employeeId?.message}
+                    {...register("employeeId", {
+                      required: "Employee ID is required",
+                    })}
+                  />
+                  <Input
+                    label="Full Name"
+                    icon={User}
+                    placeholder="John Doe"
+                    error={errors.name?.message}
+                    {...register("name", { required: "Name is required" })}
+                  />
+                  <Input
+                    label="Email"
+                    type="email"
+                    icon={Mail}
+                    placeholder="johndoe@example.com"
+                    error={errors.email?.message}
+                    {...register("email", { required: "Email is required" })}
+                  />
+                  <Input
+                    label="Phone"
+                    type="tel"
+                    icon={Phone}
+                    placeholder="+1 (555) 123-4567"
+                    error={errors.phone?.message}
+                    {...register("phone", {
+                      required: "Phone number is required",
+                    })}
+                  />
+                  <Input
+                    label="Address"
+                    icon={MapPin}
+                    placeholder="123 Main St, Anytown, USA"
+                    {...register("address")}
+                  />
                 </div>
               </div>
             </div>
@@ -255,59 +209,50 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                   <Briefcase className="mr-2" /> Job Details
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Department</span>
-                    </label>
-                    <select
-                      className={`select select-bordered w-full ${
-                        errors.department ? "select-error" : ""
-                      }`}
-                      {...register("department", {
-                        required: "Department is required",
-                      })}
-                      disabled={departmentsLoading}
-                    >
-                      <option value="">Select a department</option>
-                      {departments.map((dept) => (
-                        <option key={dept.id} value={dept.name}>
-                          {dept.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.department && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.department.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Position</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Software Engineer"
-                      className={`input input-bordered w-full ${
-                        errors.position ? "input-error" : ""
-                      }`}
-                      {...register("position", {
-                        required: "Position is required",
-                      })}
-                    />
-                    {errors.position && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.position.message}
-                      </p>
-                    )}
-                  </div>
+                  <Select
+                    label="Department"
+                    icon={Building2}
+                    error={errors.department?.message}
+                    disabled={departmentsLoading}
+                    {...register("department", {
+                      required: "Department is required",
+                    })}
+                  >
+                    <option value="">Select a department</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.name}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    label="Position"
+                    icon={Briefcase}
+                    placeholder="Software Engineer"
+                    error={errors.position?.message}
+                    {...register("position", {
+                      required: "Position is required",
+                    })}
+                  />
+                  <Select
+                    label="Role"
+                    icon={Shield}
+                    error={errors.role?.message}
+                    {...register("role", {
+                      required: "Role is required",
+                    })}
+                  >
+                    <option value="employee">Employee</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </Select>
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text">Salary</span>
                     </label>
                     <div className="join">
                       <span className="join-item btn btn-ghost no-animation">
-                        $
+                        <DollarSign size={18} />
                       </span>
                       <input
                         type="number"
@@ -327,47 +272,27 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                       </p>
                     )}
                   </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Hire Date</span>
-                    </label>
-                    <input
-                      type="date"
-                      className={`input input-bordered w-full ${
-                        errors.hireDate ? "input-error" : ""
-                      }`}
-                      {...register("hireDate", {
-                        required: "Hire date is required",
-                      })}
-                    />
-                    {errors.hireDate && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.hireDate.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Status</span>
-                    </label>
-                    <select
-                      className={`select select-bordered w-full ${
-                        errors.status ? "select-error" : ""
-                      }`}
-                      {...register("status", {
-                        required: "Status is required",
-                      })}
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="terminated">Terminated</option>
-                    </select>
-                    {errors.status && (
-                      <p className="text-error text-sm mt-1">
-                        {errors.status.message}
-                      </p>
-                    )}
-                  </div>
+                  <Input
+                    label="Hire Date"
+                    type="date"
+                    icon={Calendar}
+                    error={errors.hireDate?.message}
+                    {...register("hireDate", {
+                      required: "Hire date is required",
+                    })}
+                  />
+                  <Select
+                    label="Status"
+                    icon={Users}
+                    error={errors.status?.message}
+                    {...register("status", {
+                      required: "Status is required",
+                    })}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="terminated">Terminated</option>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -379,39 +304,25 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                   <Phone className="mr-2" /> Emergency Contact
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Name</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Jane Doe"
-                      className="input input-bordered w-full"
-                      {...register("emergencyContactName")}
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Phone</span>
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="+1 (555) 987-6543"
-                      className="input input-bordered w-full"
-                      {...register("emergencyContactPhone")}
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Relationship</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Spouse"
-                      className="input input-bordered w-full"
-                      {...register("emergencyContactRelationship")}
-                    />
-                  </div>
+                  <Input
+                    label="Name"
+                    icon={User}
+                    placeholder="Jane Doe"
+                    {...register("emergencyContactName")}
+                  />
+                  <Input
+                    label="Phone"
+                    type="tel"
+                    icon={Phone}
+                    placeholder="+1 (555) 987-6543"
+                    {...register("emergencyContactPhone")}
+                  />
+                  <Input
+                    label="Relationship"
+                    icon={Users}
+                    placeholder="Spouse"
+                    {...register("emergencyContactRelationship")}
+                  />
                 </div>
               </div>
             </div>
@@ -419,12 +330,13 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
           {/* Form Actions */}
           <div className="flex justify-end gap-4 pt-4 border-t border-base-200 mt-6">
-            <button type="button" onClick={onClose} className="btn btn-outline">
+            <Button variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className={`btn btn-primary ${loading ? "loading" : ""}`}
+              variant="primary"
+              loading={loading}
               disabled={loading}
             >
               {loading
@@ -432,7 +344,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 : employee
                 ? "Update Employee"
                 : "Create Employee"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

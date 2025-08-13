@@ -181,14 +181,6 @@ export const useLeaveRequests = () => {
     });
   };
 
-  const cancelLeaveRequest = async (id: string, cancelledBy: string) => {
-    await updateLeaveRequest(id, {
-      status: "cancelled",
-      cancelledBy,
-      cancelledAt: new Date(),
-    });
-  };
-
   const getPendingRequests = () => {
     return leaveRequests.filter((req) => req.status === "pending");
   };
@@ -206,7 +198,6 @@ export const useLeaveRequests = () => {
     deleteLeaveRequest,
     approveLeaveRequest,
     rejectLeaveRequest,
-    cancelLeaveRequest,
     getPendingRequests,
     getRequestsByStatus,
   };

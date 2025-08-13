@@ -3,11 +3,16 @@
 import type React from "react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { X, CalendarDays, Edit, Clock } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { X, CalendarDays, Edit, Clock, Calendar, FileText } from "lucide-react";
+import { parseISO } from "date-fns/parseISO";
+import { format } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEmployees } from "../../hooks/useEmployees";
 import type { LeaveRequest } from "../../types";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+import { Textarea } from "../ui/Textarea";
+import { Button } from "../ui/Button";
 
 // This interface defines the shape of the form data
 interface LeaveRequestFormData {
@@ -164,7 +169,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full relative shadow-xl">
         <button
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
@@ -187,13 +192,10 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="form-control">
-              <label className="block text-sm font-medium mb-2">
-                Leave Type
-              </label>
-              <select
-                className={`w-full p-2 border rounded ${
-                  errors.leaveType ? "border-red-500" : "border-gray-300"
-                }`}
+              <Select
+                label="Leave Type"
+                icon={Calendar}
+                error={errors.leaveType?.message}
                 {...register("leaveType", {
                   required: "Leave type is required",
                 })}
@@ -205,41 +207,27 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 <option value="maternity">Maternity</option>
                 <option value="paternity">Paternity</option>
                 <option value="emergency">Emergency</option>
-              </select>
-              {errors.leaveType && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.leaveType.message}
-                </p>
-              )}
+              </Select>
             </div>
 
             <div className="form-control">
-              <label className="block text-sm font-medium mb-2">
-                Start Date
-              </label>
-              <input
+              <Input
                 type="date"
-                className={`w-full p-2 border rounded ${
-                  errors.startDate ? "border-red-500" : "border-gray-300"
-                }`}
+                label="Start Date"
+                icon={Calendar}
+                error={errors.startDate?.message}
                 {...register("startDate", {
                   required: "Start date is required",
                 })}
               />
-              {errors.startDate && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.startDate.message}
-                </p>
-              )}
             </div>
 
             <div className="form-control">
-              <label className="block text-sm font-medium mb-2">End Date</label>
-              <input
+              <Input
                 type="date"
-                className={`w-full p-2 border rounded ${
-                  errors.endDate ? "border-red-500" : "border-gray-300"
-                }`}
+                label="End Date"
+                icon={Calendar}
+                error={errors.endDate?.message}
                 {...register("endDate", {
                   required: "End date is required",
                   validate: (value) =>
@@ -248,62 +236,47 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                     "End date must be after start date",
                 })}
               />
-              {errors.endDate && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.endDate.message}
-                </p>
-              )}
             </div>
 
             {startDate && endDate && (
               <div className="form-control">
-                <label className="block text-sm font-medium mb-2">
-                  Duration (Days)
-                </label>
-                <div className="flex items-center">
-                  <Clock size={20} className="mr-2 text-gray-400" />
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 cursor-not-allowed"
-                    value={
-                      Math.ceil(
-                        (parseISO(endDate).getTime() -
-                          parseISO(startDate).getTime()) /
-                          (1000 * 60 * 60 * 24)
-                      ) + 1
-                    }
-                    disabled
-                  />
-                </div>
+                <Input
+                  type="text"
+                  label="Duration (Days)"
+                  icon={Clock}
+                  value={
+                    Math.ceil(
+                      (parseISO(endDate).getTime() -
+                        parseISO(startDate).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    ) + 1
+                  }
+                  disabled
+                  className="bg-gray-50 cursor-not-allowed"
+                />
               </div>
             )}
 
             <div className="form-control md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Reason</label>
-              <textarea
-                className={`w-full p-2 border rounded h-24 ${
-                  errors.reason ? "border-red-500" : "border-gray-300"
-                }`}
+              <Textarea
+                label="Reason"
+                icon={FileText}
                 placeholder="Briefly describe the reason for the leave"
+                rows={3}
+                error={errors.reason?.message}
                 {...register("reason", { required: "Reason is required" })}
               />
-              {errors.reason && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.reason.message}
-                </p>
-              )}
             </div>
           </div>
 
           <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 mt-6">
-            <button type="button" onClick={onClose} className="btn btn-outline">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className={`btn btn-primary ${
-                loading ? "loading" : ""
-              }`}
+              variant="primary"
+              loading={loading}
               disabled={loading}
             >
               {loading
@@ -311,7 +284,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 : request
                 ? "Update Request"
                 : "Submit Request"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

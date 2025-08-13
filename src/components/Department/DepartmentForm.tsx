@@ -1,23 +1,18 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X, Building2, FileText } from "lucide-react";
 import type { Department } from "../../types";
+import Input from "../../components/ui/Input";
+import Textarea from "../../components/ui/Textarea";
+import Button from "../../components/ui/Button";
 
 interface DepartmentFormProps {
   department?: Department;
-  onSubmit: (
-    data: Omit<Department, "id" | "createdAt" | "updatedAt">
-  ) => Promise<void>;
+  onSubmit: (data: any) => void;
   onClose: () => void;
-}
-
-interface DepartmentFormData {
-  name: string;
-  description: string;
-  managerId?: string;
 }
 
 const DepartmentForm: React.FC<DepartmentFormProps> = ({
@@ -25,31 +20,43 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
   onSubmit,
   onClose,
 }) => {
-  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm<DepartmentFormData>({
-    defaultValues: department
-      ? {
-          ...department,
-        }
-      : {},
+  } = useForm({
+    defaultValues: {
+      name: department?.name || "",
+      description: department?.description || "",
+    },
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleFormSubmit = async (data: DepartmentFormData) => {
-    setLoading(true);
-    try {
-      await onSubmit({
-        ...data,
-        employeeCount: department?.employeeCount || 0,
+  useEffect(() => {
+    if (department) {
+      reset({
+        name: department.name,
+        description: department.description,
       });
-    } catch (err) {
-      console.error("Failed to save department:", err);
-    } finally {
-      setLoading(false);
+    } else {
+      reset({
+        name: "",
+        description: "",
+      });
     }
+  }, [department, reset]);
+
+  const handleFormSubmit = async (data: any) => {
+    setLoading(true);
+    const formData = {
+      ...data,
+      id: department?.id,
+      updatedAt: new Date(),
+      ...(department ? {} : { createdAt: new Date() }),
+    };
+    await onSubmit(formData);
+    setLoading(false);
   };
 
   return (
@@ -59,69 +66,47 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
           <h3 className="font-bold text-xl">
             {department ? "Edit Department" : "Add New Department"}
           </h3>
-          <button className="btn btn-sm btn-ghost" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             <X size={20} />
-          </button>
+          </Button>
         </div>
         <form onSubmit={handleSubmit(handleFormSubmit)}>
-          <div className="form-control mb-4">
-            <label className="label">
-              <span className="label-text">Department Name</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="e.g., Human Resources"
-                className="input input-bordered rounded-lg w-full pl-10"
-                {...register("name", {
-                  required: "Department name is required",
-                })}
-              />
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-base-content/40" />
-            </div>
-            {errors.name && (
-              <label className="label">
-                <span className="label-text-alt text-error">
-                  {errors.name.message}
-                </span>
-              </label>
-            )}
-          </div>
-          <div className="form-control mb-6">
-            <label className="label">
-              <span className="label-text">Description</span>
-            </label>
-            <div className="relative">
-              <textarea
-                className="textarea textarea-bordered rounded-lg w-full pl-10 pt-3"
-                placeholder="Brief description of the department..."
-                rows={3}
-                {...register("description", {
-                  required: "Description is required",
-                })}
-              />
-              <FileText className="absolute left-3 top-3 h-5 w-5 text-base-content/40" />
-            </div>
-            {errors.description && (
-              <label className="label">
-                <span className="label-text-alt text-error">
-                  {errors.description.message}
-                </span>
-              </label>
-            )}
-          </div>
+          <Input
+            legend="Department Name"
+            icon={Building2}
+            placeholder="e.g., Human Resources"
+            useFieldset={true}
+            error={errors.name?.message}
+            {...register("name", {
+              required: "Department name is required",
+            })}
+          />
+
+          <Textarea
+            legend="Description"
+            icon={FileText}
+            placeholder="Brief description of the department..."
+            rows={3}
+            useFieldset={true}
+            error={errors.description?.message}
+            {...register("description", {
+              required: "Description is required",
+            })}
+          />
+
           <div className="flex justify-end gap-4">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="btn btn-outline"
               disabled={loading}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className={`btn btn-primary ${loading ? "loading" : ""}`}
+              variant="primary"
+              loading={loading}
               disabled={loading}
             >
               {loading
@@ -129,7 +114,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
                 : department
                 ? "Update Department"
                 : "Create Department"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -1,42 +1,85 @@
-import React from "react";
-import { X } from "lucide-react";
+import type React from "react";
+import type { LucideIcon } from "lucide-react";
 
-interface ModalProps {
-  open: boolean;
-  title?: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  maxWidth?: string;
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?:
+    | "primary"
+    | "secondary"
+    | "accent"
+    | "ghost"
+    | "link"
+    | "info"
+    | "success"
+    | "warning"
+    | "error"
+    | "outline";
+  size?: "xs" | "sm" | "md" | "lg";
+  shape?: "square" | "circle";
+  loading?: boolean;
+  icon?: LucideIcon;
+  iconPosition?: "left" | "right";
+  children?: React.ReactNode;
+  fullWidth?: boolean;
+  soft?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({
-  open,
-  title,
-  onClose,
+const Button: React.FC<ButtonProps> = ({
+  variant = "primary",
+  size = "md",
+  shape,
+  loading = false,
+  icon: Icon,
+  iconPosition = "left",
   children,
-  maxWidth = "max-w-4xl",
+  className = "",
+  disabled,
+  fullWidth = false,
+  soft = true,
+  ...props
 }) => {
-  if (!open) return null;
+  const buttonClasses = [
+    "btn",
+    "transition-all",
+    "duration-200",
+    `btn-${variant}`,
+    size !== "md" && `btn-${size}`,
+    shape && `btn-${shape}`,
+    fullWidth && "btn-block",
+    loading && "loading",
+    soft && "btn-soft",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const isDisabled = disabled || loading;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className={`bg-base-100 rounded-lg shadow-xl w-full ${maxWidth} max-h-[90vh] overflow-y-auto`}
-        onClick={(e) => e.stopPropagation()} // prevent background click
-      >
-        <div className="flex justify-between items-center p-6 border-b border-base-200">
-          <h2 className="text-2xl font-bold">{title}</h2>
-          <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
+    <button className={buttonClasses} disabled={isDisabled} {...props}>
+      {loading && (
+        <span className="loading loading-spinner loading-sm mr-2"></span>
+      )}
+      {!loading && Icon && iconPosition === "left" && (
+        <Icon
+          size={
+            size === "xs" ? 14 : size === "sm" ? 16 : size === "lg" ? 24 : 20
+          }
+          className="mr-1"
+        />
+      )}
+      {children}
+      {!loading && Icon && iconPosition === "right" && (
+        <Icon
+          size={
+            size === "xs" ? 14 : size === "sm" ? 16 : size === "lg" ? 24 : 20
+          }
+          className="ml-1"
+        />
+      )}
+    </button>
   );
 };
 
-export default Modal;
+// Export both as named and default export for compatibility
+export { Button };
+export default Button;

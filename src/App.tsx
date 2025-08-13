@@ -13,7 +13,6 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
-// import Admin from "./pages/Admin";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {

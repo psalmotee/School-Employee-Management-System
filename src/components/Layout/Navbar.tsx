@@ -1,52 +1,61 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../../contexts/AuthContext"
-import { User, Settings, LogOut, Bell, Menu, GraduationCap } from "lucide-react"
+import type React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  User,
+  Settings,
+  LogOut,
+  Bell,
+  Menu,
+  GraduationCap,
+} from "lucide-react";
 
 const Navbar: React.FC = () => {
-  const { userProfile, logout } = useAuth()
-  const navigate = useNavigate()
+  const { userProfile, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      await logout()
-      navigate("/login")
+      await logout();
+      navigate("/login");
     } catch (error) {
-      console.error("Failed to logout:", error)
+      console.error("Failed to logout:", error);
     }
-  }
+  };
 
   return (
     <div className="navbar bg-base-100 shadow-lg border-b border-base-200">
       <div className="navbar-start">
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-            <Menu className="h-5 w-5" />
-          </div>
-          <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            <li>
-              <Link to="/dashboard">Dashboard</Link>
-            </li>
-            <li>
-              <Link to="/employees">Employees</Link>
-            </li>
-            <li>
-              <Link to="/leave-requests">Leave Requests</Link>
-            </li>
-            <li>
-              <Link to="/departments">Departments</Link>
-            </li>
-          </ul>
-        </div>
-        <Link to="/dashboard" className="btn btn-ghost text-xl">
+        {/* Start Navbar */}
+        {/* Mobile menu toggle */}
+        <label
+          htmlFor="drawer-toggle"
+          className="md:hidden btn btn-ghost btn-circle"
+        >
+          <Menu className="h-5 w-5" />
+        </label>
+
+        {/* Desktop Logo */}
+        <Link
+          to="/dashboard"
+          className="hidden md:block md:flex btn btn-ghost text-xl"
+        >
           <GraduationCap className="h-6 w-6 text-primary" />
           <span className="font-bold text-primary">School EMS</span>
         </Link>
       </div>
 
+      {/* Center Navbar */}
       <div className="navbar-center hidden lg:flex">
+        {/* Mobile Logo */}
+        <div className="btn btn-ghost text-xl md:hidden">
+          <GraduationCap className="h-6 w-6 text-primary" />
+          <span className="font-bold text-primary">School EMS</span>
+        </div>
+
+        {/* Desktop Navigation Links */}
         <ul className="menu menu-horizontal px-1">
           <li>
             <Link to="/dashboard" className="btn btn-ghost">
@@ -71,6 +80,7 @@ const Navbar: React.FC = () => {
         </ul>
       </div>
 
+      {/* End Navbar */}
       <div className="navbar-end">
         <div className="flex items-center gap-2">
           <button className="btn btn-ghost btn-circle">
@@ -81,11 +91,17 @@ const Navbar: React.FC = () => {
           </button>
 
           <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost btn-circle avatar"
+            >
               <div className="w-10 rounded-full">
                 <div className="avatar placeholder">
                   <div className="bg-primary text-primary-content rounded-full w-10">
-                    <span className="text-sm">{userProfile?.name?.charAt(0) || "U"}</span>
+                    <span className="text-sm">
+                      {userProfile?.name?.charAt(0) || "U"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -121,7 +137,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

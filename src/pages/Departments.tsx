@@ -6,6 +6,8 @@ import { Plus, Search, Edit, Trash2, Building2 } from "lucide-react";
 import { useDepartments } from "../hooks/useDepartments";
 import { useAuth } from "../contexts/AuthContext";
 import DepartmentForm from "../components/Department/DepartmentForm";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 import type { Department } from "../types";
 
 const Departments: React.FC = () => {
@@ -107,28 +109,23 @@ const Departments: React.FC = () => {
           Departments
         </h1>
         {isManagerOrAdmin && (
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-            <Plus size={20} />
+          <Button className="btn-soft" icon={Plus} onClick={() => setShowForm(true)}>
             Add Department
-          </button>
+          </Button>
         )}
       </div>
 
       <div className="bg-base-100 rounded-2xl p-6 shadow-xl mb-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="form-control w-full md:w-1/3">
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search size={20} className="text-base-content/60" />
-              </span>
-              <input
-                type="text"
-                placeholder="Search departments..."
-                className="input input-bordered w-full pl-10 rounded-xl"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+            <Input
+              type="text"
+              placeholder="Search departments..."
+              icon={Search}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="rounded-xl"
+            />
           </div>
           <div className="text-sm text-base-content/60">
             Showing {filteredDepartments.length} of {departments.length}{" "}
@@ -157,21 +154,23 @@ const Departments: React.FC = () => {
               <div className="card-actions justify-end mt-4">
                 {isManagerOrAdmin && (
                   <>
-                    <button
-                      className="btn btn-sm btn-ghost text-warning"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={Edit}
+                      className="text-warning"
                       onClick={() => {
                         setEditingDepartment(department);
                         setShowForm(true);
                       }}
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      className="btn btn-sm btn-ghost text-error"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={Trash2}
+                      className="text-error"
                       onClick={() => setShowDeleteConfirm(department.id)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    />
                   </>
                 )}
               </div>
@@ -204,24 +203,19 @@ const Departments: React.FC = () => {
               cannot be undone.
             </p>
             <div className="flex justify-end gap-4">
-              <button
-                className="btn btn-outline"
+              <Button
+                variant="outline"
                 onClick={() => setShowDeleteConfirm(null)}
               >
                 Cancel
-              </button>
-              <button
-                disabled={loading}
-                className="btn btn-error"
+              </Button>
+              <Button
+                variant="error"
+                loading={loading}
                 onClick={() => handleDeleteDepartment(showDeleteConfirm)}
               >
-                {loading ? (
-                  <span className="loading loading-spinner loading-sm"></span>
-                ) : (
-                  "Delete"
-                )}
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
