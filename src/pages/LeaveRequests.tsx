@@ -20,8 +20,8 @@ import { useAuth } from "../contexts/AuthContext";
 import LeaveRequestForm from "../components/LeaveRequests/LeaveRequestForm";
 import LeaveRequestDetails from "../components/LeaveRequests/LeaveRequestDetails";
 import type { LeaveRequest } from "../types";
-import Input from "../components/ui/Input";
-import Select from "../components/ui/Select";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
 import Button from "../components/ui/Button";
 
 const LeaveRequests: React.FC = () => {
@@ -150,10 +150,24 @@ const LeaveRequests: React.FC = () => {
     }
   };
 
+  const canApproveRequest = (request: LeaveRequest) => {
+    if (!userProfile) return false;
+
+    // Admin or manager role required
+    if (userProfile.role !== "admin" && userProfile.role !== "manager")
+      return false;
+
+    // Cannot approve own request
+    if (userProfile.id === request.employeeId) return false;
+
+    // Request must be pending
+    return request.status === "pending";
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -186,23 +200,23 @@ const LeaveRequests: React.FC = () => {
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
-          <p className="text-sm text-gray-500">Total Requests</p>
-          <p className="text-2xl font-bold">{leaveRequests.length}</p>
-          <p className="text-xs text-gray-400">All time</p>
+          <div className="text-sm text-gray-500">Total Requests</div>
+          <div className="text-2xl font-bold">{leaveRequests.length}</div>
+          <div className="text-xs text-gray-400">All time</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <p className="text-sm text-gray-500">Pending Requests</p>
-          <p className="text-2xl font-bold text-yellow-600">
+          <div className="text-sm text-gray-500">Pending Requests</div>
+          <div className="text-2xl font-bold text-yellow-600">
             {leaveRequests.filter((r) => r.status === "pending").length}
-          </p>
-          <p className="text-xs text-gray-400">Awaiting approval</p>
+          </div>
+          <div className="text-xs text-gray-400">Awaiting approval</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <p className="text-sm text-gray-500">Approved Requests</p>
-          <p className="text-2xl font-bold text-green-600">
+          <div className="text-sm text-gray-500">Approved Requests</div>
+          <div className="text-2xl font-bold text-green-600">
             {leaveRequests.filter((r) => r.status === "approved").length}
-          </p>
-          <p className="text-xs text-gray-400">This year</p>
+          </div>
+          <div className="text-xs text-gray-400">This year</div>
         </div>
       </div>
 
@@ -254,22 +268,22 @@ const LeaveRequests: React.FC = () => {
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Employee Name
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Leave Type
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date Range
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Days
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -315,57 +329,56 @@ const LeaveRequests: React.FC = () => {
                   >
                     <Eye size={18} />
                   </Button>
-                  {userProfile?.role === "admin" ||
-                    (userProfile?.role === "manager" &&
-                      request.status === "pending" && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-green-600 hover:text-green-900 mr-2"
-                            title="Approve"
-                            onClick={() => handleApprove(request.id)}
-                          >
-                            <CheckCircle size={18} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-900 mr-2"
-                            title="Reject"
-                            onClick={() => setShowRejectModal(request.id)}
-                          >
-                            <XCircle size={18} />
-                          </Button>
-                        </>
-                      ))}
-                  {(userProfile?.id === request.employeeId ||
-                    userProfile?.role === "admin" ||
-                    userProfile?.role === "manager") && (
+                  {canApproveRequest(request) && (
                     <>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-yellow-600 hover:text-yellow-900 mr-2"
-                        title="Edit"
-                        onClick={() => {
-                          setEditingRequest(request);
-                          setShowForm(true);
-                        }}
+                        className="text-green-600 hover:text-green-900 mr-2"
+                        title="Approve"
+                        onClick={() => handleApprove(request.id)}
                       >
-                        <Edit size={18} />
+                        <CheckCircle size={18} />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
-                        onClick={() => setShowDeleteConfirm(request.id)}
+                        className="text-red-600 hover:text-red-900 mr-2"
+                        title="Reject"
+                        onClick={() => setShowRejectModal(request.id)}
                       >
-                        <Trash2 size={18} />
+                        <XCircle size={18} />
                       </Button>
                     </>
                   )}
+                  {(userProfile?.id === request.employeeId ||
+                    userProfile?.role === "admin" ||
+                    userProfile?.role === "manager") &&
+                    request.status !== "cancelled" && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-yellow-600 hover:text-yellow-900 mr-2"
+                          title="Edit"
+                          onClick={() => {
+                            setEditingRequest(request);
+                            setShowForm(true);
+                          }}
+                        >
+                          <Edit size={18} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
+                          onClick={() => setShowDeleteConfirm(request.id)}
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                      </>
+                    )}
                 </td>
               </tr>
             ))}
@@ -388,7 +401,7 @@ const LeaveRequests: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="font-bold text-lg mb-4">Confirm Delete</h3>
             <p className="mb-6">
@@ -414,7 +427,7 @@ const LeaveRequests: React.FC = () => {
 
       {/* Reject Leave Request Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="font-bold text-lg mb-4">Reject Leave Request</h3>
             <div className="mb-6">

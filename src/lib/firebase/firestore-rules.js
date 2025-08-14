@@ -2,128 +2,90 @@
 // service cloud.firestore {
 //   match /databases/{database}/documents {
 
-//     // Helper functions
+//     // Helper function to check if the user is authenticated
 //     function isAuthenticated() {
 //       return request.auth != null;
 //     }
 
-//     function getUserRole() {
-//       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+//     // Helper function to get the user's role
+//     function getRole(userId) {
+//       return get(/databases/$(database)/documents/users/$(userId)).data.role;
 //     }
 
-//     function isAdmin() {
-//       return isAuthenticated() && getUserRole() == "admin";
-//     }
-
-//     function isManager() {
-//       return isAuthenticated() && (getUserRole() == "manager" || getUserRole() == "admin");
-//     }
-
-//     function isEmployee() {
-//       return isAuthenticated() && getUserRole() == "employee";
-//     }
-
-//     function isOwner(userId) {
-//       return isAuthenticated() && request.auth.uid == userId;
-//     }
-
-//     function isValidUserData() {
-//       return request.resource.data.keys().hasAll(['name', 'email', 'role', 'department', 'position']) &&
-//         request.resource.data.role in ['admin', 'manager', 'employee'] &&
-//         request.resource.data.email is string &&
-//         request.resource.data.name is string &&
-//         request.resource.data.department is string &&
-//         request.resource.data.position is string;
-//     }
-
-//     function isValidEmployeeData() {
-//       return request.resource.data.keys().hasAll(['employeeId', 'name', 'email', 'department', 'position', 'status']) &&
-//         request.resource.data.status in ['active', 'inactive', 'terminated'] &&
-//         request.resource.data.email is string &&
-//         request.resource.data.name is string &&
-//         request.resource.data.employeeId is string;
-//     }
-
-//     function isValidLeaveRequest() {
-//       return request.resource.data.keys().hasAll(['employeeId', 'employeeName', 'leaveType', 'startDate', 'endDate', 'reason', 'status']) &&
-//         request.resource.data.leaveType in ['sick', 'vacation', 'personal', 'maternity', 'paternity', 'emergency'] &&
-//         request.resource.data.status in ['pending', 'approved', 'rejected'] &&
-//         request.resource.data.employeeId is string &&
-//         request.resource.data.reason is string;
-//     }
-
-//     // Users
+//     // A user can read and update their own profile
 //     match /users/{userId} {
-//       allow read: if isOwner(userId) || isManager();
-//       allow create: if isOwner(userId) && isValidUserData();
-//       allow update: if (isOwner(userId) || isAdmin()) && isValidUserData();
-//       allow delete: if isAdmin();
+//       allow read: if isAuthenticated() && request.auth.uid == userId;
+//       allow update: if isAuthenticated() && request.auth.uid == userId;
 //     }
 
-//     // Employees
+//     // Leave requests can be managed by different roles
+//     match /leaveRequests/{leaveRequestId} {
+//       // Allow any authenticated user to create a leave request
+//       allow create: if isAuthenticated() && request.resource.data.employeeId == request.auth.uid;
+
+//       // Allow authenticated users to read
+//       allow read: if isAuthenticated() && (
+//         request.auth.uid == resource.data.employeeId || // Employee's own requests
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
+
+//       // Allow authenticated users to update or delete
+//       allow update, delete: if isAuthenticated() && (
+//         (request.auth.uid == resource.data.employeeId && resource.data.status == 'pending') ||
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
+//     }
+
+//     // Employees can be managed by admins and managers
 //     match /employees/{employeeId} {
-//       allow read: if isAuthenticated();
-//       allow create, update: if isManager() && isValidEmployeeData();
-//       allow delete: if isAdmin();
-//     }
+//       // Allow unauthenticated users to read for registration
+//       allow read: if request.auth == null && resource.data.isRegistered == false;
 
-//     // Leave Requests
-//     match /leaveRequests/{requestId} {
-//       allow read: if isAuthenticated() && (resource.data.employeeId == request.auth.uid || isManager());
-//       allow create: if isAuthenticated() && request.resource.data.employeeId == request.auth.uid && isValidLeaveRequest() && request.resource.data.status == 'pending';
+//       // Allow authenticated users to update their own employee record
 //       allow update: if isAuthenticated() && (
-//         (resource.data.employeeId == request.auth.uid && resource.data.status == 'pending' && request.resource.data.status == 'pending') || isManager()
-//       ) && isValidLeaveRequest();
-//       allow delete: if isManager();
+//         (request.auth.token.email == resource.data.email &&
+//          resource.data.isRegistered == false &&
+//          request.resource.data.id == request.auth.uid) ||
+//         (request.auth.uid == employeeId) ||
+//         (getRole(request.auth.uid) == 'admin' || getRole(request.auth.uid) == 'manager')
+//       );
+
+//       // Admins and managers can create new employee records
+//       allow create: if isAuthenticated() && (
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
+
+//       // All authenticated users can read employee data
+//       allow read: if isAuthenticated();
+
+//       // Admins and managers can delete any employee record
+//       allow delete: if isAuthenticated() && (
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
 //     }
 
-//      // Departments
+//     // Departments can be managed by admins and managers, but read by all
 //     match /departments/{departmentId} {
+//       // All authenticated users can read department data
 //       allow read: if isAuthenticated();
-//       allow create, update: if isAdmin() &&
-//         request.resource.data.keys().hasAll(['name', 'description']) &&
-//         request.resource.data.name is string &&
-//         request.resource.data.description is string;
-//       allow delete: if isAdmin();
+
+//       // Admins and managers can create, update, or delete department records
+//       allow create, update, delete: if isAuthenticated() && (
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
 //     }
 
-
-//     // Notifications
-//     match /notifications/{notificationId} {
-//       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-//       allow create: if isManager() &&
-//         request.resource.data.keys().hasAll(['userId', 'title', 'message', 'type', 'read']) &&
-//         request.resource.data.read == false;
-//       allow update: if isAuthenticated() &&
-//         resource.data.userId == request.auth.uid &&
-//         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'updatedAt']);
-//       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-//     }
-
-//     // Audit Logs
-//     match /auditLogs/{logId} {
-//       allow read: if isAdmin();
-//       allow create, update, delete: if false;
-//     }
-
-//     // Reports
-//     match /reports/{reportId} {
-//       allow read: if isManager();
-//       allow create, update, delete: if isAdmin();
-//     }
-
-//     // Settings
-//     match /settings/{settingId} {
-//       allow read: if isAuthenticated();
-//       allow create, update, delete: if isAdmin();
-//     }
-
-//     // Invitation Codes
+//     // Invitation codes are managed by admins/managers
 //     match /invitationCodes/{codeId} {
-//       allow read, create, delete: if isAdmin();
-//       allow update: if isAdmin() || (
-//         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isUsed', 'usedBy', 'usedAt']) &&
-//         request.resource.data.isUsed == true
+//       allow read: if isAuthenticated();
+//       allow create, update, delete: if isAuthenticated() && (
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
 //       );
 //     }
 //   }

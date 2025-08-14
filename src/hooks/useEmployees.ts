@@ -38,7 +38,6 @@ export const useEmployees = () => {
           createdAt: doc.data().createdAt?.toDate() || new Date(),
           updatedAt: doc.data().updatedAt?.toDate() || new Date(),
           hireDate: doc.data().hireDate?.toDate() || new Date(),
-          dateOfBirth: doc.data().dateOfBirth?.toDate() || undefined,
         })) as Employee[];
 
         setEmployees(employeeList);

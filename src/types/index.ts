@@ -31,7 +31,6 @@ export interface Employee {
   status: "active" | "inactive" | "terminated" | "on-leave" | EmployeeStatus;
   avatar?: string;
   address?: string;
-  dateOfBirth?: Date;
   role: UserRole;
   emergencyContact?: {
     name: string;

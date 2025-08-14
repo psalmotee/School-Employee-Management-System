@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X, Building2, FileText } from "lucide-react";
 import type { Department } from "../../types";
-import Input from "../../components/ui/Input";
-import Textarea from "../../components/ui/Textarea";
-import Button from "../../components/ui/Button";
+import Input from "../ui/Input";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
 
 interface DepartmentFormProps {
   department?: Department;
@@ -50,10 +50,8 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
   const handleFormSubmit = async (data: any) => {
     setLoading(true);
     const formData = {
-      ...data,
-      id: department?.id,
-      updatedAt: new Date(),
-      ...(department ? {} : { createdAt: new Date() }),
+      name: data.name,
+      description: data.description,
     };
     await onSubmit(formData);
     setLoading(false);

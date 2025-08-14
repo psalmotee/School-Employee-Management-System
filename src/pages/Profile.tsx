@@ -11,6 +11,7 @@ import {
 } from "../components/ui/Card";
 import Label from "../components/ui/Label";
 import Input from "../components/ui/Input";
+import Textarea from "../components/ui/Textarea";
 import Button from "../components/ui/Button";
 import {
   User,
@@ -24,6 +25,8 @@ import {
   Save,
   X,
 } from "lucide-react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 const Profile: React.FC = () => {
   const { userProfile, currentUser } = useAuth();
@@ -32,6 +35,7 @@ const Profile: React.FC = () => {
     name: userProfile?.name || "",
     email: userProfile?.email || currentUser?.email || "",
     phone: userProfile?.phone || "",
+    bio: userProfile?.bio || "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +52,7 @@ const Profile: React.FC = () => {
       name: userProfile?.name || "",
       email: userProfile?.email || currentUser?.email || "",
       phone: userProfile?.phone || "",
+      bio: userProfile?.bio || "",
     });
   };
 
@@ -57,19 +62,41 @@ const Profile: React.FC = () => {
       name: userProfile?.name || "",
       email: userProfile?.email || currentUser?.email || "",
       phone: userProfile?.phone || "",
+      bio: userProfile?.bio || "",
     });
   };
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      // TODO: Implement profile update logic here
-      console.log("Updating profile:", formData);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!userProfile?.id) {
+        throw new Error("User profile not found");
+      }
+
+      try {
+        const userDocRef = doc(db, "users", userProfile.id);
+        await updateDoc(userDocRef, {
+          name: formData.name,
+          phone: formData.phone,
+          bio: formData.bio,
+          updatedAt: new Date(),
+        });
+      } catch (userUpdateError) {
+        console.log("Trying employees collection...");
+        const employeeDocRef = doc(db, "employees", userProfile.id);
+        await updateDoc(employeeDocRef, {
+          name: formData.name,
+          phone: formData.phone,
+          bio: formData.bio,
+          updatedAt: new Date(),
+        });
+      }
+
+      alert("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -194,7 +221,7 @@ const Profile: React.FC = () => {
             />
           </div>
 
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="bio">Bio / Notes</Label>
             <Textarea
               id="bio"
@@ -209,7 +236,7 @@ const Profile: React.FC = () => {
               placeholder="Tell us about yourself..."
               rows={3}
             />
-          </div> */}
+          </div>
         </CardContent>
       </Card>
     </div>

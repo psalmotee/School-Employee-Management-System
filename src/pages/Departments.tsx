@@ -70,10 +70,18 @@ const Departments: React.FC = () => {
     }
   };
 
+  const handleFormSubmit = async (data: any) => {
+    if (editingDepartment) {
+      await handleUpdateDepartment(editingDepartment.id, data);
+    } else {
+      await handleCreateDepartment(data);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center h-full">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
   }
@@ -109,7 +117,7 @@ const Departments: React.FC = () => {
           Departments
         </h1>
         {isManagerOrAdmin && (
-          <Button className="btn-soft" icon={Plus} onClick={() => setShowForm(true)}>
+          <Button icon={Plus} onClick={() => setShowForm(true)}>
             Add Department
           </Button>
         )}
@@ -183,9 +191,7 @@ const Departments: React.FC = () => {
       {showForm && (
         <DepartmentForm
           department={editingDepartment || undefined}
-          onSubmit={
-            editingDepartment ? handleUpdateDepartment : handleCreateDepartment
-          }
+          onSubmit={handleFormSubmit} // Use wrapper function instead of conditional
           onClose={() => {
             setShowForm(false);
             setEditingDepartment(null);

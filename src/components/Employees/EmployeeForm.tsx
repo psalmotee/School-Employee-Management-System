@@ -32,7 +32,7 @@ interface EmployeeFormData {
   role: "employee" | "manager" | "admin";
   salary: number;
   hireDate: string;
-  status: "active" | "inactive" | "terminated" | "EmployeeStatus";
+  status: "active" | "inactive" | "terminated";
   address?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
@@ -130,11 +130,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     const employeeData = {
       ...formattedData,
       role: data.role,
-      dateOfBirth: employee?.dateOfBirth,
     };
 
     await onSubmit(
-      employeeData as Omit<Employee, "id" | "createdAt" | "updatedAt"> 
+      employeeData as Omit<Employee, "id" | "createdAt" | "updatedAt">
     );
   };
 
