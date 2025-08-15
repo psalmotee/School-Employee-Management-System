@@ -10,6 +10,8 @@ import DepartmentForm from "../components/Department/DepartmentForm";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import type { Department } from "../types";
+import toast from "react-hot-toast";
+
 
 const Departments: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,6 +55,7 @@ const Departments: React.FC = () => {
       setShowForm(false);
     } catch (err) {
       console.error("Failed to create department:", err);
+      toast.error("Failed to create department: please contact your IT department");
     }
   };
 
@@ -66,6 +69,7 @@ const Departments: React.FC = () => {
       setEditingDepartment(null);
     } catch (err) {
       console.error("Failed to update department:", err);
+      toast.error("Failed to update department: please contact your IT department");
     }
   };
 
@@ -75,6 +79,10 @@ const Departments: React.FC = () => {
       setShowDeleteConfirm(null);
     } catch (err) {
       console.error("Failed to delete department:", err);
+      toast.error(
+        "Failed to delete department: please contact your IT department"
+      );
+      
     }
   };
 
@@ -88,8 +96,8 @@ const Departments: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -111,7 +119,7 @@ const Departments: React.FC = () => {
               d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span>Error: {error}</span>
+          <span>Please contact your IT department</span>
         </div>
       </div>
     );

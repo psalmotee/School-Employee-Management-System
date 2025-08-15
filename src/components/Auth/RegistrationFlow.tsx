@@ -17,6 +17,7 @@ import { auth, db } from "../../lib/firebase";
 import { Mail, Lock, UserPlus } from "lucide-react";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
+import toast from "react-hot-toast";
 
 interface RegistrationFormData {
   email: string;
@@ -73,12 +74,17 @@ const RegistrationFlow: React.FC = () => {
         isRegistered: true,
         updatedAt: new Date(),
       });
+      toast.success("Registration successful! You can now log in.");
 
       // 4. Redirect to the dashboard
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(
+        err.message ||
+          "Registration failed. Please check your information and try again."
+      );
+      toast.error(
         err.message ||
           "Registration failed. Please check your information and try again."
       );

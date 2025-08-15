@@ -23,6 +23,7 @@ import type { LeaveRequest } from "../types";
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import Button from "../components/ui/Button";
+import toast from "react-hot-toast";
 
 const LeaveRequests: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -87,6 +88,7 @@ const LeaveRequests: React.FC = () => {
     try {
       if (!userProfile) {
         throw new Error("User not authenticated.");
+        toast.error("You must be logged in to create a leave request.");
       }
 
       console.log("Creating request with data:", data);
@@ -95,7 +97,7 @@ const LeaveRequests: React.FC = () => {
       setShowForm(false);
     } catch (e: any) {
       console.error("Failed to create leave request:", e);
-      alert(e.message || "Failed to create leave request. Please try again.");
+      toast.error("Failed to create leave request. Please try again.");
     } finally {
       setFormSubmitting(false);
     }
@@ -110,6 +112,7 @@ const LeaveRequests: React.FC = () => {
       setEditingRequest(null);
     } catch (e) {
       console.error("Failed to update leave request:", e);
+      toast.error("Failed to update leave request. Please try again.");
     } finally {
       setFormSubmitting(false);
     }
@@ -122,6 +125,7 @@ const LeaveRequests: React.FC = () => {
       setShowDeleteConfirm(null);
     } catch (e) {
       console.error("Failed to delete leave request:", e);
+      toast.error("Failed to delete leave request. Please try again.");
     }
   };
 
@@ -134,6 +138,7 @@ const LeaveRequests: React.FC = () => {
       );
     } catch (e) {
       console.error("Failed to approve request:", e);
+      toast.error("Failed to approve request. Please try again.");
     } finally {
       setShowRejectModal(null);
     }
@@ -149,6 +154,7 @@ const LeaveRequests: React.FC = () => {
       );
     } catch (e) {
       console.error("Failed to reject request:", e);
+      toast.error("Failed to reject request. Please try again.");
     } finally {
       setShowRejectModal(null);
       setRejectionReason("");
@@ -180,7 +186,7 @@ const LeaveRequests: React.FC = () => {
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        <p>Error: {error}</p>
+        <p>Error: Please contact your IT department</p>
       </div>
     );
   }

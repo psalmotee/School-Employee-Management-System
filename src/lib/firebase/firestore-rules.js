@@ -12,47 +12,64 @@
 //       return get(/databases/$(database)/documents/users/$(userId)).data.role;
 //     }
 
-//     // A user can read and update their own profile
+//     // Users collection
 //     match /users/{userId} {
+//       // Read own profile
 //       allow read: if isAuthenticated() && request.auth.uid == userId;
-//       allow update: if isAuthenticated() && request.auth.uid == userId;
+
+//       // Update own profile OR admin/manager can update any
+//       allow update: if isAuthenticated() && (
+//         request.auth.uid == userId ||
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
+
+//       // Create new profile by admin/manager
+//       allow create: if isAuthenticated() && (
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
+//       );
 //     }
 
-//     // Leave requests can be managed by different roles
+//     // Leave Requests collection
 //     match /leaveRequests/{leaveRequestId} {
-//       // Allow any authenticated user to create a leave request
-//       allow create: if isAuthenticated() && request.resource.data.employeeId == request.auth.uid;
+//       // Create leave request (must be their own employeeId)
+//       allow create: if isAuthenticated() &&
+//         request.resource.data.employeeId == request.auth.uid;
 
-//       // Allow authenticated users to read
+//       // Read leave request (own OR admin/manager)
 //       allow read: if isAuthenticated() && (
-//         request.auth.uid == resource.data.employeeId || // Employee's own requests
+//         request.auth.uid == resource.data.employeeId ||
 //         getRole(request.auth.uid) == 'admin' ||
 //         getRole(request.auth.uid) == 'manager'
 //       );
 
-//       // Allow authenticated users to update or delete
+//       // Update or delete (own pending OR admin/manager)
 //       allow update, delete: if isAuthenticated() && (
-//         (request.auth.uid == resource.data.employeeId && resource.data.status == 'pending') ||
+//         (request.auth.uid == resource.data.employeeId &&
+//          resource.data.status == 'pending') ||
 //         getRole(request.auth.uid) == 'admin' ||
 //         getRole(request.auth.uid) == 'manager'
 //       );
 //     }
 
-//     // Employees can be managed by admins and managers
+//     // Employees collection
 //     match /employees/{employeeId} {
-//       // Allow unauthenticated users to read for registration
-//       allow read: if request.auth == null && resource.data.isRegistered == false;
+//       // Unauthenticated read for pre-registration
+//       allow read: if request.auth == null &&
+//         resource.data.isRegistered == false;
 
-//       // Allow authenticated users to update their own employee record
+//       // Update during registration (email + id match + not registered yet)
 //       allow update: if isAuthenticated() && (
 //         (request.auth.token.email == resource.data.email &&
 //          resource.data.isRegistered == false &&
 //          request.resource.data.id == request.auth.uid) ||
-//         (request.auth.uid == employeeId) ||
-//         (getRole(request.auth.uid) == 'admin' || getRole(request.auth.uid) == 'manager')
+//         request.auth.uid == employeeId ||
+//         getRole(request.auth.uid) == 'admin' ||
+//         getRole(request.auth.uid) == 'manager'
 //       );
 
-//       // Admins and managers can create new employee records
+//       // Admin/manager can create
 //       allow create: if isAuthenticated() && (
 //         getRole(request.auth.uid) == 'admin' ||
 //         getRole(request.auth.uid) == 'manager'
@@ -61,28 +78,31 @@
 //       // All authenticated users can read employee data
 //       allow read: if isAuthenticated();
 
-//       // Admins and managers can delete any employee record
+//       // Admin/manager can delete
 //       allow delete: if isAuthenticated() && (
 //         getRole(request.auth.uid) == 'admin' ||
 //         getRole(request.auth.uid) == 'manager'
 //       );
 //     }
 
-//     // Departments can be managed by admins and managers, but read by all
+//     // Departments collection
 //     match /departments/{departmentId} {
-//       // All authenticated users can read department data
+//       // Any authenticated user can read
 //       allow read: if isAuthenticated();
 
-//       // Admins and managers can create, update, or delete department records
+//       // Admin/manager can create, update, delete
 //       allow create, update, delete: if isAuthenticated() && (
 //         getRole(request.auth.uid) == 'admin' ||
 //         getRole(request.auth.uid) == 'manager'
 //       );
 //     }
 
-//     // Invitation codes are managed by admins/managers
+//     // Invitation Codes collection
 //     match /invitationCodes/{codeId} {
+//       // Read by authenticated users
 //       allow read: if isAuthenticated();
+
+//       // Create/update/delete by admin/manager
 //       allow create, update, delete: if isAuthenticated() && (
 //         getRole(request.auth.uid) == 'admin' ||
 //         getRole(request.auth.uid) == 'manager'

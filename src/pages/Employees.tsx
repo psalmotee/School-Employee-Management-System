@@ -19,6 +19,7 @@ import type { Employee } from "../types";
 import Input from "../components/ui/Input";
 import Select from "../components/ui/Select";
 import Button from "../components/ui/Button";
+import toast from "react-hot-toast";
 
 const Employees: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,6 +66,7 @@ const Employees: React.FC = () => {
       setShowForm(false);
     } catch (e) {
       console.error("Failed to create employee:", e);
+      toast.error("Failed to create employee. Please try again.");
     }
   };
 
@@ -78,6 +80,7 @@ const Employees: React.FC = () => {
       setEditingEmployee(null);
     } catch (e) {
       console.error("Failed to update employee:", e);
+      toast.error("Failed to update employee. Please try again.");
     }
   };
 
@@ -88,6 +91,7 @@ const Employees: React.FC = () => {
       setShowDeleteConfirm(null);
     } catch (e) {
       console.error("Failed to delete employee:", e);
+      toast.error("Failed to delete employee. Please try again.");
     }
   };
 
@@ -105,7 +109,7 @@ const Employees: React.FC = () => {
   if (error) {
     return (
       <div className="alert alert-error">
-        <p>Error: {error}</p>
+        <p>Error: please contact your IT department</p>
       </div>
     );
   }

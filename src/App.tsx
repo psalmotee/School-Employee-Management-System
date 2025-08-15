@@ -20,11 +20,10 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 function App() {
   const { loading, isAuthReady } = useAuth();
 
-  // Show a full-screen loading spinner while Firebase auth is initializing
   if (loading || !isAuthReady) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-base-200">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></span>
         <p className="ml-3 text-lg text-base-content">Loading application...</p>
       </div>
     );
@@ -62,8 +61,6 @@ function App() {
   );
 }
 
-// Export the App component wrapped in the AuthProvider
-// This is the crucial step to ensure the useAuth hook works throughout the app.
 export default function AppWithProvider() {
   return (
     <AuthProvider>

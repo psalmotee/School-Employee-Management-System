@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Mail, Lock, Eye, EyeOff, GraduationCap } from "lucide-react";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
+import { toast } from "react-hot-toast";
 
 interface LoginFormData {
   email: string;
@@ -31,9 +32,11 @@ const LoginForm: React.FC = () => {
     setLoading(true);
     try {
       await login(data.email, data.password);
+      toast.success("Login successful");
       navigate("/dashboard");
     } catch (error: any) {
       setError("email", { message: "Invalid email or password" });
+      toast.error("Invalid email or password");
     } finally {
       setLoading(false);
     }
