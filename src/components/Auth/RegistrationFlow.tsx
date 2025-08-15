@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -12,8 +13,10 @@ import {
   updateDoc,
   doc,
 } from "firebase/firestore";
-import { auth, db } from "../../lib/firebase"; // Correctly import auth and db directly
+import { auth, db } from "../../lib/firebase";
 import { Mail, Lock, UserPlus } from "lucide-react";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
 
 interface RegistrationFormData {
   email: string;
@@ -55,7 +58,6 @@ const RegistrationFlow: React.FC = () => {
       }
 
       const employeeDoc = querySnapshot.docs[0];
-      // const employeeData = employeeDoc.data(); // This variable isn't used, so we can remove it.
 
       // 2. Create the new Firebase user
       const userCredential = await createUserWithEmailAndPassword(
@@ -67,12 +69,12 @@ const RegistrationFlow: React.FC = () => {
 
       // 3. Update the existing employee document with the user's new UID and set isRegistered to true
       await updateDoc(doc(db, "employees", employeeDoc.id), {
-        id: user.uid, // Add the Firebase Auth UID to the employee document
+        id: user.uid,
         isRegistered: true,
         updatedAt: new Date(),
       });
 
-      // 4. Redirect to the login page with a success message
+      // 4. Redirect to the dashboard
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Registration error:", err);
@@ -101,84 +103,48 @@ const RegistrationFlow: React.FC = () => {
             onSubmit={handleSubmit(handleRegistration)}
             className="space-y-4"
           >
-            {/* Email Field */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email</span>
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="input input-bordered w-full pl-10"
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: "Invalid email address",
-                    },
-                  })}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-error text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Email"
+              type="email"
+              placeholder="Enter your email"
+              icon={Mail}
+              error={errors.email?.message}
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^\S+@\S+$/i,
+                  message: "Invalid email address",
+                },
+              })}
+            />
 
-            {/* Password Field */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Password</span>
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-                <input
-                  type="password"
-                  placeholder="Create a password"
-                  className="input input-bordered w-full pl-10"
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                  })}
-                />
-              </div>
-              {errors.password && (
-                <p className="text-error text-sm mt-1">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Password"
+              type="password"
+              placeholder="Create a password"
+              icon={Lock}
+              error={errors.password?.message}
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
+            />
 
-            {/* Confirm Password Field */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Confirm Password</span>
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-                <input
-                  type="password"
-                  placeholder="Confirm your password"
-                  className="input input-bordered w-full pl-10"
-                  {...register("confirmPassword", {
-                    required: "Please confirm your password",
-                    validate: (value) =>
-                      value === password || "The passwords do not match",
-                  })}
-                />
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-error text-sm mt-1">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Confirm Password"
+              type="password"
+              placeholder="Confirm your password"
+              icon={Lock}
+              error={errors.confirmPassword?.message}
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (value) =>
+                  value === password || "The passwords do not match",
+              })}
+            />
 
             {error && (
               <div role="alert" className="alert alert-error mt-4">
@@ -199,15 +165,15 @@ const RegistrationFlow: React.FC = () => {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
-              className={`btn btn-primary w-full mt-6 ${
-                loading ? "loading" : ""
-              }`}
+              variant="primary"
+              loading={loading}
               disabled={loading}
+              className="w-full mt-6"
             >
               {loading ? "Registering..." : "Register"}
-            </button>
+            </Button>
           </form>
 
           <p className="text-center text-sm text-base-content/60 mt-4">
@@ -216,6 +182,36 @@ const RegistrationFlow: React.FC = () => {
               Log in
             </Link>
           </p>
+
+          <div className="bg-info/10 border border-info/20 rounded-lg p-4 mt-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-5 h-5 text-info mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-info mb-1">
+                  Registration Instructions
+                </h4>
+                <p className="text-xs text-base-content/70 leading-relaxed">
+                  To successfully register on this platform, your email must
+                  first be added to the system by an administrator or manager.
+                  Once your email is registered in the employee database, you
+                  can complete your account setup by creating a password. If you
+                  encounter any issues, please contact your administrator.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

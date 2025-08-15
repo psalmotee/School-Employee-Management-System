@@ -27,9 +27,10 @@ import {
 } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import toast from "react-hot-toast";
 
 const Profile: React.FC = () => {
-  const { userProfile, currentUser } = useAuth();
+  const { userProfile, currentUser, refreshUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: userProfile?.name || "",
@@ -73,6 +74,12 @@ const Profile: React.FC = () => {
         throw new Error("User profile not found");
       }
 
+      if (!formData.name.trim()) {
+        toast.error("Name is required");
+        setLoading(false);
+        return;
+      }
+
       try {
         const userDocRef = doc(db, "users", userProfile.id);
         await updateDoc(userDocRef, {
@@ -92,27 +99,43 @@ const Profile: React.FC = () => {
         });
       }
 
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
+
+      // Refresh the user profile to update the context
+      if (refreshUserProfile) {
+        await refreshUserProfile();
+      }
+
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">My Profile</h1>
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">My Profile</h1>
         {!isEditing ? (
-          <Button variant="outline" onClick={handleEdit} icon={Edit}>
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            icon={Edit}
+            className="w-full sm:w-auto bg-transparent"
+          >
             Edit Profile
           </Button>
         ) : (
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={handleCancel} icon={X}>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="ghost"
+              onClick={handleCancel}
+              icon={X}
+              className="flex-1 sm:flex-none"
+            >
               Cancel
             </Button>
             <Button
@@ -120,6 +143,7 @@ const Profile: React.FC = () => {
               onClick={handleSave}
               loading={loading}
               icon={Save}
+              className="flex-1 sm:flex-none"
             >
               Save Changes
             </Button>
@@ -128,10 +152,10 @@ const Profile: React.FC = () => {
       </div>
 
       <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>User Information</CardTitle>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl">User Information</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4">
+        <CardContent className="grid gap-4 p-4 sm:p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>

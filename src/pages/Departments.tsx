@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Building2 } from "lucide-react";
 import { useDepartments } from "../hooks/useDepartments";
+import { useEmployees } from "../hooks/useEmployees";
 import { useAuth } from "../contexts/AuthContext";
 import DepartmentForm from "../components/Department/DepartmentForm";
 import Input from "../components/ui/Input";
@@ -29,6 +30,7 @@ const Departments: React.FC = () => {
     updateDepartment,
     deleteDepartment,
   } = useDepartments();
+  const { employees } = useEmployees();
 
   const isManagerOrAdmin =
     userProfile?.role === "admin" || userProfile?.role === "manager";
@@ -36,6 +38,12 @@ const Departments: React.FC = () => {
   const filteredDepartments = departments.filter((department) =>
     department.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getEmployeeCountByDepartment = (departmentName: string) => {
+    return employees.filter(
+      (employee) => employee.department === departmentName
+    ).length;
+  };
 
   const handleCreateDepartment = async (
     data: Omit<Department, "id" | "createdAt" | "updatedAt">
@@ -157,7 +165,7 @@ const Departments: React.FC = () => {
               </p>
               <div className="flex items-center text-sm text-base-content/60 mt-2">
                 <Building2 size={16} className="mr-2" />
-                Employee Count: {department.employeeCount}
+                Employee Count: {getEmployeeCountByDepartment(department.name)}
               </div>
               <div className="card-actions justify-end mt-4">
                 {isManagerOrAdmin && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Layout from "./components/Layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginForm from "./components/Auth/LoginForm";
@@ -13,6 +14,7 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
+// import Admin from "./pages/Admin";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -66,6 +68,30 @@ export default function AppWithProvider() {
   return (
     <AuthProvider>
       <App />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: "#4ade80",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            duration: 5000,
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
     </AuthProvider>
   );
 }

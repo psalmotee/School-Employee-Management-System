@@ -61,6 +61,11 @@ const LeaveRequests: React.FC = () => {
     return employee ? employee.name : "Unknown Employee";
   };
 
+  const getEmployeeDepartment = (employeeId: string) => {
+    const employee = employees.find((emp) => emp.id === employeeId);
+    return employee ? employee.department : "Unknown Department";
+  };
+
   const filteredRequests = useMemo(() => {
     return leaveRequests
       .filter((request) => {
@@ -167,7 +172,7 @@ const LeaveRequests: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -268,22 +273,25 @@ const LeaveRequests: React.FC = () => {
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Employee Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Department
+              </th>
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Leave Type
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date Range
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Days
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -291,18 +299,23 @@ const LeaveRequests: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredRequests.map((request) => (
               <tr key={request.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                   {getEmployeeName(request.employeeId)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
+                  {getEmployeeDepartment(request.employeeId)}
+                </td>
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                   {request.leaveType}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                   {format(request.startDate, "PPP")} -{" "}
                   {format(request.endDate, "PPP")}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">{request.days}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
+                  {request.days}
+                </td>
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       request.status === "pending"
@@ -319,7 +332,7 @@ const LeaveRequests: React.FC = () => {
                     {request.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <Button
                     variant="ghost"
                     size="sm"

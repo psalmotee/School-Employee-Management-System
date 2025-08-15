@@ -6,6 +6,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../contexts/AuthContext";
 import { Mail, Lock, Eye, EyeOff, GraduationCap } from "lucide-react";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
 
 interface LoginFormData {
   email: string;
@@ -38,61 +40,49 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 px-4">
       <div className="card w-full max-w-md bg-base-100 shadow-2xl">
-        <div className="card-body">
+        <div className="card-body p-4 sm:p-8">
           <div className="text-center mb-6">
             <div className="flex justify-center mb-4">
               <div className="p-3 bg-primary rounded-full">
-                <GraduationCap className="h-8 w-8 text-primary-content" />
+                <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary-content" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-primary">School EMS</h1>
-            <p className="text-base-content/60">Employee Management System</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary">
+              School EMS
+            </h1>
+            <p className="text-sm sm:text-base text-base-content/60">
+              Employee Management System
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className={`input input-bordered w-full pl-10 ${
-                    errors.email ? "input-error" : ""
-                  }`}
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: "Invalid email address",
-                    },
-                  })}
-                />
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
-              </div>
-              {errors.email && (
-                <label className="label">
-                  <span className="label-text-alt text-error">
-                    {errors.email.message}
-                  </span>
-                </label>
-              )}
-            </div>
+            <Input
+              label="Email"
+              type="email"
+              placeholder="Enter your email"
+              icon={Mail}
+              error={errors.email?.message}
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^\S+@\S+$/i,
+                  message: "Invalid email address",
+                },
+              })}
+            />
 
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Password</span>
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className={`input input-bordered w-full pl-10 pr-10 ${
-                    errors.password ? "input-error" : ""
-                  }`}
+                  icon={Lock}
+                  error={errors.password?.message}
                   {...register("password", {
                     required: "Password is required",
                     minLength: {
@@ -101,10 +91,9 @@ const LoginForm: React.FC = () => {
                     },
                   })}
                 />
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-base-content/40" />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 z-30"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -114,27 +103,22 @@ const LoginForm: React.FC = () => {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <label className="label">
-                  <span className="label-text-alt text-error">
-                    {errors.password.message}
-                  </span>
-                </label>
-              )}
             </div>
 
             <div className="form-control mt-6">
-              <button
+              <Button
                 type="submit"
-                className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
+                variant="primary"
+                loading={loading}
                 disabled={loading}
+                className="w-full"
               >
                 {loading ? "Signing In..." : "Sign In"}
-              </button>
+              </Button>
             </div>
           </form>
 
-          <div className="divider">OR</div>
+          <div className="divider text-xs sm:text-sm">OR</div>
 
           <div className="text-center">
             <p className="text-sm">
@@ -145,8 +129,8 @@ const LoginForm: React.FC = () => {
             </p>
           </div>
 
-          <div className="divider">Demo Credentials</div>
-          <div className="text-sm text-base-content/70 space-y-1">
+          <div className="divider text-xs sm:text-sm">Demo Credentials</div>
+          <div className="text-xs sm:text-sm text-base-content/70 space-y-1">
             <p>
               <strong>Admin:</strong> admin@school.edu / admin123
             </p>
