@@ -24,6 +24,7 @@ import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import Button from "../components/ui/Button";
 import toast from "react-hot-toast";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const LeaveRequests: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -177,9 +178,7 @@ const LeaveRequests: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-      </div>
+      <LoadingSpinner />
     );
   }
 

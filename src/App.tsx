@@ -16,6 +16,7 @@ import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 // import Admin from "./pages/Admin";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 function App() {
   const { loading, isAuthReady } = useAuth();
@@ -23,7 +24,7 @@ function App() {
   if (loading || !isAuthReady) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-base-200">
-        <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></span>
+        <LoadingSpinner />
         <p className="ml-3 text-lg text-base-content">Loading application...</p>
       </div>
     );

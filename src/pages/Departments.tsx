@@ -11,6 +11,7 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import type { Department } from "../types";
 import toast from "react-hot-toast";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 
 const Departments: React.FC = () => {
@@ -96,9 +97,7 @@ const Departments: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-      </div>
+      <LoadingSpinner />
     );
   }
 
