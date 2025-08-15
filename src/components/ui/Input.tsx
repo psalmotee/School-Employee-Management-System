@@ -51,7 +51,7 @@ const Input: React.FC<InputProps> = ({
           <legend className="fieldset-legend">{legend}</legend>
           <div className="relative">
             {Icon && iconPosition === "left" && (
-              <span className="absolute inset-y-0 left-0 flex items-center pl-4 z-20 pointer-events-none">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 z-1 pointer-events-none">
                 <Icon size={18} className="text-base-content/50" />
               </span>
             )}
@@ -86,7 +86,7 @@ const Input: React.FC<InputProps> = ({
       )}
       <div className="relative">
         {Icon && iconPosition === "left" && (
-          <span className="absolute inset-y-0 left-0 flex items-center pl-4 z-20 pointer-events-none">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-4 z-1 pointer-events-none">
             <Icon size={18} className="text-base-content/50" />
           </span>
         )}

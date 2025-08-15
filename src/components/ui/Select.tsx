@@ -50,7 +50,7 @@ const Select: React.FC<SelectProps> = ({
       )}
       <div className="relative">
         {Icon && (
-          <span className="absolute inset-y-0 left-0 flex items-center pl-4 z-10">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-4 z-1">
             <Icon size={18} className="text-base-content/50" />
           </span>
         )}
