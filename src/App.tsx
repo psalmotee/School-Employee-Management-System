@@ -1,26 +1,41 @@
 "use client";
 
+import type React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { lazy, Suspense } from "react";
 import Layout from "./components/Layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import LoginForm from "./components/Auth/LoginForm";
-import RegistrationFlow from "./components/Auth/RegistrationFlow";
-import Dashboard from "./pages/Dashboard";
-import Employees from "./pages/Employees";
-import LeaveRequests from "./pages/LeaveRequests";
-import Departments from "./pages/Departments";
-import Reports from "./pages/Reports";
-import Profile from "./pages/Profile";
-import Notifications from "./pages/Notifications";
-import Settings from "./pages/Settings";
-// import Admin from "./pages/Admin";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoadingSpinner from "./components/LoadingSpinner";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+const LoginForm = lazy(() => import("./components/Auth/LoginForm"));
+const RegistrationFlow = lazy(
+  () => import("./components/Auth/RegistrationFlow")
+);
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Employees = lazy(() => import("./pages/Employees"));
+const LeaveRequests = lazy(() => import("./pages/LeaveRequests"));
+const Departments = lazy(() => import("./pages/Departments"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Settings = lazy(() => import("./pages/Settings"));
+
+const LazyRoute: React.FC<{
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}> = ({ children, fallback }) => (
+  <ErrorBoundary>
+    <Suspense fallback={fallback || <LoadingSpinner />}>{children}</Suspense>
+  </ErrorBoundary>
+);
 
 function App() {
   const { loading, isAuthReady } = useAuth();
 
+  // Show a full-screen loading spinner while Firebase auth is initializing
   if (loading || !isAuthReady) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-base-200">
@@ -32,8 +47,24 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginForm />} />
-      <Route path="/register" element={<RegistrationFlow />} />
+      <Route
+        path="/login"
+        element={
+          <LazyRoute fallback={<LoadingSpinner message="Loading login..." />}>
+            <LoginForm />
+          </LazyRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <LazyRoute
+            fallback={<LoadingSpinner message="Loading registration..." />}
+          >
+            <RegistrationFlow />
+          </LazyRoute>
+        }
+      />
 
       <Route
         path="/"
@@ -44,14 +75,87 @@ function App() {
         }
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="employees" element={<Employees />} />
-        <Route path="leave-requests" element={<LeaveRequests />} />
-        <Route path="departments" element={<Departments />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="settings" element={<Settings />} />
+
+        <Route
+          path="dashboard"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading dashboard..." />}
+            >
+              <Dashboard />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="employees"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading employees..." />}
+            >
+              <Employees />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="leave-requests"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading leave requests..." />}
+            >
+              <LeaveRequests />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="departments"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading departments..." />}
+            >
+              <Departments />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="reports"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading reports..." />}
+            >
+              <Reports />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading profile..." />}
+            >
+              <Profile />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="notifications"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading notifications..." />}
+            >
+              <Notifications />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <LazyRoute
+              fallback={<LoadingSpinner message="Loading settings..." />}
+            >
+              <Settings />
+            </LazyRoute>
+          }
+        />
         {/* Admin route is only visible if the user role is 'admin' */}
         {/* {userProfile?.role === "admin" && (
           <Route path="admin" element={<Admin />} />
@@ -62,6 +166,8 @@ function App() {
   );
 }
 
+// Export the App component wrapped in the AuthProvider
+// This is the crucial step to ensure the useAuth hook works throughout the app.
 export default function AppWithProvider() {
   return (
     <AuthProvider>
