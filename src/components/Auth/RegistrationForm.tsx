@@ -25,7 +25,7 @@ interface RegistrationFormData {
   confirmPassword: string;
 }
 
-const RegistrationFlow: React.FC = () => {
+const RegistrationForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -224,4 +224,4 @@ const RegistrationFlow: React.FC = () => {
   );
 };
 
-export default RegistrationFlow;
+export default RegistrationForm;

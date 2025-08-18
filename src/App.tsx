@@ -11,8 +11,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const LoginForm = lazy(() => import("./components/Auth/LoginForm"));
-const RegistrationFlow = lazy(
-  () => import("./components/Auth/RegistrationFlow")
+const RegistrationForm = lazy(
+  () => import("./components/Auth/RegistrationForm")
 );
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Employees = lazy(() => import("./pages/Employees"));
@@ -61,7 +61,7 @@ function App() {
           <LazyRoute
             fallback={<LoadingSpinner message="Loading registration..." />}
           >
-            <RegistrationFlow />
+            <RegistrationForm />
           </LazyRoute>
         }
       />
